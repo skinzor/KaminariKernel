@@ -833,6 +833,25 @@ static int tpa6165_get_hs_acc_type(struct tpa6165_data *tpa6165)
 	return acc_type;
 }
 
+static void tpa6165_detect_multi_button(struct tpa6165_data *tpa6165)
+{
+	u8 value;
+	u8 keyscan;
+	int ret;
+
+	ret = tpa6165_reg_read(tpa6165, TPA6165_MB_KEYSCAN_REG, &keyscan);
+	if (ret < 0) {
+		pr_err("TPA: Could not read keyscan data register\n");
+		return;
+	}
+
+	value = keyscan & 0x7F;
+	if (keyscan & BIT(7))
+		value *= 4;
+
+	pr_info("TPA: value: %d\n", value);
+}
+
 static void tpa6165_report_button(struct tpa6165_data *tpa6165)
 {
 	if (tpa6165->mono_hs_detect_state)
@@ -907,6 +926,7 @@ static void tpa6165_report_button(struct tpa6165_data *tpa6165)
 		 * in android, so nothing report here. Just put the.
 		 * IC back in sleep.
 		 */
+		tpa6165_detect_multi_button(tpa6165);
 		pr_debug("%s:multi button press detected", __func__);
 		if (tpa6165->button_detect_state &&
 				tpa6165->amp_state == TPA6165_AMP_DISABLED &&
