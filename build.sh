@@ -21,8 +21,6 @@ if [ $device == "falcon" ]; then
 elif [ $device == "peregrine" ]; then
 	echo -e "Device: Moto G 4G (peregrine)";
 	device2="Peregrine";
-	echo -e "Peregrine is not supported yet.\n";
-	exit 1;
 else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
