@@ -14,7 +14,7 @@ export SUBARCH=arm;
 export CROSS_COMPILE=arm-eabi-;
 
 # Output some basic info
-echo -e "Building KaminariKernel (Original Edition)...";
+echo -e "Building KaminariKernel...";
 if [ $device == "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
 	device2="Falcon";
@@ -28,7 +28,7 @@ fi;
 if [ $version != "" -o $version != " " ]; then
 	echo -e "Version: "$version"\n";
 else
-	echo -e "No version number has been set.\n";
+	echo -e "No version number has been set. The build date & time will be used instead.\n";
 fi;
 
 # Clear the result of previous builds if $3 == clean
@@ -46,6 +46,9 @@ if [ $4 ]; then
 else
 	make -j3;
 fi;
+
+# Set the build date & time after it has been completed
+builddate=`date +%Y%m%d.%H%M%S`;
 
 # Make dirs if they don't exist
 if [ ! -d ../$zipdir ]; then mkdir ../$zipdir; fi;
@@ -70,7 +73,8 @@ cd ../$zipdir;
 # Set zip name
 case $version in
 	"" | " ")
-		zipname="Kaminari_"$device2;
+		# In case the version number hasn't been specified, use the build date and time instead.
+		zipname="Kaminari_"$device2"_"$builddate;
 	;;
 	*)
 		zipname="Kaminari_v"$version"_"$device2;
