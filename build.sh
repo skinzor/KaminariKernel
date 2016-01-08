@@ -74,7 +74,7 @@ cd ../$zipdir;
 case $version in
 	"" | " ")
 		# In case the version number hasn't been specified, use the build date and time instead.
-		zipname="Kaminari_"$device2"_"$builddate;
+		zipname="Kaminari_"$builddate"_"$device2;
 	;;
 	*)
 		zipname="Kaminari_v"$version"_"$device2;
