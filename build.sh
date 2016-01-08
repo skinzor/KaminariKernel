@@ -2,10 +2,8 @@
 
 # Variables
 device="$1";
-version="$2";
+device2="";
 zipname="";
-zipdir="zip_"$device;
-outdir="release_"$device;
 
 # Set up the cross-compiler
 export PATH=$HOME/Toolchains/Linaro-5.2-A7/bin:$PATH;
@@ -14,38 +12,36 @@ export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
 # Output some basic info
-echo -e "Building KaminariKernel (Original Edition)...";
+echo -e "Building Optimized Stock Kernel...";
 if [ $device == "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
-	device2="Falcon";
+	$device2="Falcon";
 elif [ $device == "peregrine" ]; then
 	echo -e "Device: Moto G 4G (peregrine)";
-	device2="Peregrine";
+	$device2="Peregrine";
 else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
 fi;
-if [ $version != "" -o $version != " " ]; then
-	echo -e "Version: "$version"\n";
-else
-	echo -e "No version number has been set.\n";
-fi;
 
-# Clear the result of previous builds if $3 == clean
-if [ $3 ]; then
-	if [ $3 == "clean" ]; then
+# Clear the result of previous builds if $2 == clean
+if [ $2 ]; then
+	if [ $2 == "clean" ]; then
 		echo -e "The output of previous builds will be removed.\n";
 		make clean && make mrproper;
 	fi;
 fi;
 
 # Build the kernel
-make kaminari/"$device"_defconfig;
-if [ $4 ]; then
-	make -j$4;
+make "$device"_defconfig;
+if [ $3 ]; then
+	make -j$3;
 else
 	make -j3;
 fi;
+
+zipdir="Zip_"$device2_"StockOpt";
+outdir="Release_"$device2"_StockOpt";
 
 # Make dirs if they don't exist
 if [ ! -d ../$zipdir ]; then mkdir ../$zipdir; fi;
@@ -70,14 +66,13 @@ cd ../$zipdir;
 # Set zip name
 case $version in
 	"" | " ")
-		zipname="Kaminari-"$device2"-Neue";
+		zipname="OptStock-"$device2;
 	;;
 	*)
-		zipname="Kaminari-"$device2"-v"$version;
+		zipname="OptStock-"$device2;
 	;;
 esac;
 
 # Make the zip
-echo $version > ../$zipdir/version.txt;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
