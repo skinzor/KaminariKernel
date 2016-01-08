@@ -39,7 +39,7 @@ else
 	make -j3;
 fi;
 
-zipdir="Zip_"$device2_"StockOpt";
+zipdir="Zip_"$device2"_StockOpt";
 outdir="Release_"$device2"_StockOpt";
 
 # Make dirs if they don't exist
