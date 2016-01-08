@@ -130,6 +130,12 @@ config CPU_FREQ_DEFAULT_GOV_YANKACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'yankactive' governor for latency-sensitive workloads.
 
+config CPU_FREQ_DEFAULT_GOV_WHEATLEY
+    bool "wheatley"
+    select CPU_FREQ_GOV_WHEATLEY
+    help
+      Use the CPUFreq governor 'wheatley' as default.
+
 config CPU_FREQ_DEFAULT_GOV_SMARTMAX
     bool "smartmax"
     select CPU_FREQ_GOV_SMARTMAX
@@ -287,6 +293,10 @@ config CPU_FREQ_GOV_YANKACTIVE
 	  The governor is based on interactive with just different default settings
 	  and can be achieved using interactive with a script. This is added for
 	  simplification purposes for myself.
+
+config CPU_FREQ_GOV_WHEATLEY
+	tristate "'wheatley' cpufreq governor"
+	depends on CPU_FREQ  
 
 config CPU_FREQ_GOV_SMARTMAX
            tristate "'smartmax' cpufreq governor"
