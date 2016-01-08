@@ -42,6 +42,9 @@ fi;
 zipdir="Zip_"$device2"_StockOpt";
 outdir="Release_"$device2"_StockOpt";
 
+# Set the build date & time after it has been completed
+builddate=`date +%Y%m%d.%H%M%S`;
+
 # Make dirs if they don't exist
 if [ ! -d ../$zipdir ]; then mkdir ../$zipdir; fi;
 if [ ! -d ../$zipdir/modules ]; then mkdir ../$zipdir/modules; fi;
@@ -62,16 +65,7 @@ cp -f arch/arm/boot/zImage-dtb ../$zipdir/;
 ls -l ../$zipdir/zImage-dtb;
 cd ../$zipdir;
 
-# Set zip name
-case $version in
-	"" | " ")
-		zipname="OptStock-"$device2;
-	;;
-	*)
-		zipname="OptStock-"$device2;
-	;;
-esac;
-
 # Make the zip
+zipname="OptimizedStock_"$builddate"_"$device2;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
