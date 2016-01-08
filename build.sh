@@ -70,10 +70,10 @@ cd ../$zipdir;
 # Set zip name
 case $version in
 	"" | " ")
-		zipname="Kaminari-"$device2"-Neue";
+		zipname="Kaminari_"$device2;
 	;;
 	*)
-		zipname="Kaminari-"$device2"-v"$version;
+		zipname="Kaminari_v"$version"_"$device2;
 	;;
 esac;
 
