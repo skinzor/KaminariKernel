@@ -25,7 +25,7 @@ else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
 fi;
-if [ $version != "" ]; then
+if [ $version ]; then
 	echo -e "Version: "$version"\n";
 else
 	echo -e "No version number has been set. The build date & time will be used instead.\n";
