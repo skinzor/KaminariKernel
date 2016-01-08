@@ -2,7 +2,6 @@
 
 # Variables
 device="$1";
-device2="";
 zipname="";
 
 # Set up the cross-compiler
@@ -15,10 +14,10 @@ export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 echo -e "Building Optimized Stock Kernel...";
 if [ $device == "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
-	$device2="Falcon";
+	device2="Falcon";
 elif [ $device == "peregrine" ]; then
 	echo -e "Device: Moto G 4G (peregrine)";
-	$device2="Peregrine";
+	device2="Peregrine";
 else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
