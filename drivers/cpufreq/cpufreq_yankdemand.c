@@ -42,7 +42,7 @@
 #define MAX_SAMPLING_DOWN_FACTOR			(100000)
 #define DEF_INPUT_BOOST					(787200)/* Yank555.lu : new */
 #define DEF_IO_IS_BUSY					(1)	/* Yank555.lu : new */
-#define DEF_OPTIMAL_FREQUENCY				(1094000)/* Yank555.lu : new */
+#define DEF_OPTIMAL_FREQUENCY				(1094400)/* Yank555.lu : new */
 #define DEF_SYNC_FREQUENCY				(787200)/* Yank555.lu : new */
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL		(3)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL_MULTI_CORE	(3)	/* Yank555.lu : new */
@@ -89,7 +89,7 @@ freq_table_idx yank_pre_freq_idx[SUP_CORE_NUM] = {};
 #if defined(SMART_UP_SLOW_UP_AT_HIGH_FREQ)
 
 #define SUP_SLOW_UP_FREQUENCY 		(787200)
-#define SUP_HIGH_SLOW_UP_FREQUENCY 	(1094000)
+#define SUP_HIGH_SLOW_UP_FREQUENCY 	(1094400)
 #define SUP_SLOW_UP_LOAD 		(95)  
 
 typedef struct {
