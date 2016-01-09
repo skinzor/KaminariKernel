@@ -22,10 +22,10 @@ fi;
 
 # Output some basic info
 echo -e "Building KaminariKernel...";
-if [ $device == "falcon" ]; then
+if [ $device = "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
 	device2="Falcon";
-elif [ $device == "peregrine" ]; then
+elif [ $device = "peregrine" ]; then
 	echo -e "Device: Moto G 4G (peregrine)";
 	device2="Peregrine";
 else
@@ -34,47 +34,70 @@ else
 fi;
 
 if [ $2 ]; then
-	if [ $2 != "none" ]; then
-		if [ $2 != "clean" ]; then
-			version="$2";		
-			echo -e "Version: "$version"\n";
-			if [ $3 ]; then
-				if [ $3 == "clean" ]; then
-					echo -e "The output of previous builds will be removed.\n";
-					if [ $4 ]; then
-						echo -e "Number of parallel jobs: $4\n";
-					else
-						echo -e "Number of parallel jobs: 3\n";
-					fi;						
-					make clean && make mrproper;
-				fi;
-			fi;
-		else
-			echo -e "No version number has been set. The build date & time will be used instead.\n";
-			echo -e "The output of previous builds will be removed.\n";
-			if [ $3 ]; then
-				echo -e "Number of parallel jobs: $3\n";
-			else
-				echo -e "Number of parallel jobs: 3\n";
-			fi;	
-			make clean && make mrproper;
-		fi;
-	else
+	if [ $2 = "clean_full" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
+		echo -e "The output of previous builds will be removed.\n";
+		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
 		if [ $3 ]; then
 			echo -e "Number of parallel jobs: $3\n";
 		else
 			echo -e "Number of parallel jobs: 3\n";
-		fi;			
+		fi;
+		make clean && make mrproper;
+	elif [ $2 = "clean" ]; then
+		echo -e "No version number has been set. The build date & time will be used instead.\n";
+		echo -e "The output of previous builds will be removed.\n";
+		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+		if [ $3 ]; then
+			echo -e "Number of parallel jobs: $3\n";
+		else
+			echo -e "Number of parallel jobs: 3\n";
+		fi;
+		make clean;
+	else
+		if [ $2 != "none" ]; then
+			version="$2";
+			echo -e "Version: "$version"\n";
+			if [ $3 ]; then
+				if [ $3 = "clean_full" ]; then
+					echo -e "The output of previous builds will be removed.\n";
+					echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+					if [ $4 ]; then
+						echo -e "Number of parallel jobs: $4\n";
+					else
+						echo -e "Number of parallel jobs: 3\n";
+					fi;
+					make clean && make mrproper;
+				elif [ $3 = "clean" ]; then
+					echo -e "The output of previous builds will be removed.\n";
+					echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+					if [ $4 ]; then
+						echo -e "Number of parallel jobs: $4\n";
+					else
+						echo -e "Number of parallel jobs: 3\n";
+					fi;
+					make clean;
+				fi;
+			fi;
+		else
+			echo -e "No version number has been set. The build date & time will be used instead.\n";
+			echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+			if [ $3 ]; then
+				echo -e "Number of parallel jobs: $3\n";
+			else
+				echo -e "Number of parallel jobs: 3\n";
+			fi;
+		fi;
 	fi;
 else
 	echo -e "No version number has been set. The build date & time will be used instead.\n";
+	echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
 fi;
 
 # Build the kernel
 make kaminari/"$device"_defconfig;
 
-if [ $2 == "clean" ]; then
+if [ $2 = "clean" -o $2 = "clean_full" ]; then
 	if [ $3 ]; then	
 		make -j$3;
 	else
@@ -87,8 +110,10 @@ else
 		make -j3;
 	fi;
 fi;
-	
 
+# Tell when the build was finished
+echo -e "Build finished on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+	
 # Set the build date & time after it has been completed
 builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
