@@ -102,6 +102,9 @@ if [ ! -d ../$zipdir ]; then
 	cp -rf ../Custom_AnyKernel/* ../$zipdir;
 fi;
 
+# Make the modules dir if it doesn't exist
+if [ ! -d ../$zipdir/modules ]; then mkdir ../$zipdir/modules; fi;
+
 # Make the release dir if it doesn't exist
 if [ ! -d ../$outdir ]; then mkdir ../$outdir; fi;
 
