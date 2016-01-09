@@ -2,7 +2,7 @@
 
 # Variables
 device="$1";
-zipname="";
+this="KaminariKernel";
 
 # Set up the cross-compiler
 export PATH=$HOME/Toolchains/Linaro-5.2-A7/bin:$PATH;
@@ -12,11 +12,12 @@ export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
 # Clone the custom anykernel repo
 if [ ! -d ../Custom_AnyKernel ]; then
-	echo "Custom AnyKernel not detected. Cloning git repository...";	
-	git clone -b $device"_stk" https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
+	echo -e "Custom AnyKernel not detected. Cloning git repository...\n";	
+	git clone -q -b $device"_stk" https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
 else
 	cd ../Custom_AnyKernel;
-	git checkout $device"_stk";
+	git checkout -q $device"_stk";
+	cd ../$this;
 fi;
 
 # Output some basic info
@@ -32,9 +33,9 @@ else
 	exit 1;
 fi;
 
-# Clear the result of previous builds if $2 (or $3) == clean
 if [ $2 ]; then
-	if [ $3 == "clean" ]; then
+	if [ $2 == "clean" ]; then
+		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		make clean && make mrproper;
 	fi;
@@ -43,10 +44,13 @@ fi;
 # Build the kernel
 make "$device"_defconfig;
 if [ $3 ]; then
+	echo -e "Number of parallel jobs: $3";		
 	make -j$3;
 else
+	echo -e "Number of parallel jobs: 3";
 	make -j3;
 fi;
+	
 
 # Set the build date & time after it has been completed
 builddate=`date +%Y%m%d.%H%M%S`;
@@ -58,7 +62,7 @@ outdir="release_"$device"_stk";
 # Make the zip dir if it doesn't exist
 if [ ! -d ../$zipdir ]; then
 	mkdir ../$zipdir;	
-	cp -rf ../Custom_Anykernel/* ../$zipdir;
+	cp -rf ../Custom_AnyKernel/* ../$zipdir;
 fi;
 
 # Make the release dir if it doesn't exist
