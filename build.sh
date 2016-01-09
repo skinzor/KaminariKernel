@@ -10,6 +10,15 @@ export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
+# Clone the custom anykernel repo
+if [ ! -d ../Custom_AnyKernel ]; then
+	echo "Custom AnyKernel not detected. Cloning git repository...";	
+	git clone -b $device"_stk" https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
+else
+	cd ../Custom_AnyKernel;
+	git checkout $device"_stk";
+fi;
+
 # Output some basic info
 echo -e "Building Optimized Stock Kernel...";
 if [ $device == "falcon" ]; then
@@ -22,25 +31,10 @@ else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
 fi;
-if [ $2 ]; then
-	if [ ! $2 == "clean" ]; then
-		version="$2";		
-		echo -e "Version: "$version"\n";
-	else
-		echo -e "No version number has been set. The build date & time will be used instead.\n";
-	fi;
-else
-	echo -e "No version number has been set. The build date & time will be used instead.\n";
-fi;
 
 # Clear the result of previous builds if $2 (or $3) == clean
-if [ $3 ]; then
+if [ $2 ]; then
 	if [ $3 == "clean" ]; then
-		echo -e "The output of previous builds will be removed.\n";
-		make clean && make mrproper;
-	fi;
-elif [ $2 ]; then
-	if [ $2 == "clean" ]; then
 		echo -e "The output of previous builds will be removed.\n";
 		make clean && make mrproper;
 	fi;
@@ -48,9 +42,7 @@ fi;
 
 # Build the kernel
 make "$device"_defconfig;
-if [ $4 ]; then
-	make -j$4;
-elif [ $3 ]; then
+if [ $3 ]; then
 	make -j$3;
 else
 	make -j3;
@@ -63,9 +55,8 @@ builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 zipdir="zip_"$device"_stk";
 outdir="release_"$device"_stk";
 
-# Clone the git repo if the zip dir doesn't exist
+# Make the zip dir if it doesn't exist
 if [ ! -d ../$zipdir ]; then
-	git clone -b $device"_stk" https://github.com/Kamin4ri/Custom_Anykernel ../;
 	mkdir ../$zipdir;	
 	cp -rf ../Custom_Anykernel/* ../$zipdir;
 fi;
@@ -89,20 +80,9 @@ ls -l ../$zipdir/zImage-dtb;
 cd ../$zipdir;
 
 # Set zip name
-case $version in
-	"" | " ")
-		# In case the version number hasn't been specified, use the build date and time instead.
-		zipname="Kaminari_"$builddate"_"$device2;
-	;;
-	*)
-		zipname="Kaminari_v"$version"_"$device2;
-	;;
-esac;
+zipname="OptimizedStk_"$builddate"_"$device2;
 
 # Make the zip
-if [ $version ]; then
-	echo "Version: $version" > version.txt;
-else
-	echo "Build date and time: $builddate_full" > version.txt;
+echo "Build date and time: $builddate_full" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
