@@ -16,7 +16,7 @@ if [ ! -d ../Custom_AnyKernel ]; then
 	git clone -q -b $device https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
 else
 	cd ../Custom_AnyKernel;
-	git checkout $device;
+	git checkout -q $device;
 	cd ../$this;
 fi;
 
