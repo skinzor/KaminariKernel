@@ -37,17 +37,16 @@ if [ $2 ]; then
 	if [ $2 == "clean" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
+		if [ $3 ]; then
+			echo -e "Number of parallel jobs: $3\n";
+		else
+			echo -e "Number of parallel jobs: 3\n";
+		fi;
 		make clean && make mrproper;
 	fi;
 fi;
 
 # Build the kernel
-if [ $3 ]; then
-	echo -e "Number of parallel jobs: $3\n";
-else
-	echo -e "Number of parallel jobs: 3\n";
-fi;
-
 make "$device"_defconfig;
 
 if [ $3 ]; then		
