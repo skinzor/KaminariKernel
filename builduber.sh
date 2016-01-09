@@ -56,8 +56,10 @@ if [ $3 ]; then
 else
 	make -j3;
 fi;
-	
 
+# Tell when the build was finished
+echo -e "Build finished on: `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`\n"
+	
 # Set the build date & time after it has been completed
 builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
@@ -99,6 +101,3 @@ zipname="OptimizedStk_"$builddate"_"$device2;
 echo "Build date and time: $builddate_full" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
-
-# Tell when the build was finished
-echo -e "Build finished on: `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`"
