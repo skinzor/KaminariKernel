@@ -34,7 +34,7 @@ else
 fi;
 
 # Tell when the build was started
-echo -e "Build date & time (start): `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`"
+echo -e "Build date & time (start): `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`\n"
 
 if [ $2 ]; then
 	if [ $2 == "clean" ]; then
