@@ -22,9 +22,24 @@ else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
 fi;
-
-# Clear the result of previous builds if $2 == clean
 if [ $2 ]; then
+	if [ ! $2 == "clean" ]; then
+		version="$2";		
+		echo -e "Version: "$version"\n";
+	else
+		echo -e "No version number has been set. The build date & time will be used instead.\n";
+	fi;
+else
+	echo -e "No version number has been set. The build date & time will be used instead.\n";
+fi;
+
+# Clear the result of previous builds if $2 (or $3) == clean
+if [ $3 ]; then
+	if [ $3 == "clean" ]; then
+		echo -e "The output of previous builds will be removed.\n";
+		make clean && make mrproper;
+	fi;
+elif [ $2 ]; then
 	if [ $2 == "clean" ]; then
 		echo -e "The output of previous builds will be removed.\n";
 		make clean && make mrproper;
@@ -33,27 +48,35 @@ fi;
 
 # Build the kernel
 make "$device"_defconfig;
-if [ $3 ]; then
+if [ $4 ]; then
+	make -j$4;
+elif [ $3 ]; then
 	make -j$3;
 else
 	make -j3;
 fi;
 
-zipdir="Zip_"$device2"_StockOpt";
-outdir="Release_"$device2"_StockOpt";
-
 # Set the build date & time after it has been completed
 builddate=`date +%Y%m%d.%H%M%S`;
+builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
-# Make dirs if they don't exist
-if [ ! -d ../$zipdir ]; then mkdir ../$zipdir; fi;
-if [ ! -d ../$zipdir/modules ]; then mkdir ../$zipdir/modules; fi;
+zipdir="zip_"$device"_stk";
+outdir="release_"$device"_stk";
+
+# Clone the git repo if the zip dir doesn't exist
+if [ ! -d ../$zipdir ]; then
+	git clone -b $device"_stk" https://github.com/Kamin4ri/Custom_Anykernel ../;
+	mkdir ../$zipdir;	
+	cp -rf ../Custom_Anykernel/* ../$zipdir;
+fi;
+
+# Make the release dir if it doesn't exist
 if [ ! -d ../$outdir ]; then mkdir ../$outdir; fi;
 
 # Remove previous modules
 if [ -d ../$zipdir/modules ]; then rm -rf ../$zipdir/modules/*; fi;
 
-# Make dirs part 2
+# Make wi-fi module dir
 if [ ! -d ../$zipdir/modules/pronto ]; then mkdir ../$zipdir/modules/pronto; fi;
 
 # Modules
@@ -65,7 +88,21 @@ cp -f arch/arm/boot/zImage-dtb ../$zipdir/;
 ls -l ../$zipdir/zImage-dtb;
 cd ../$zipdir;
 
+# Set zip name
+case $version in
+	"" | " ")
+		# In case the version number hasn't been specified, use the build date and time instead.
+		zipname="Kaminari_"$builddate"_"$device2;
+	;;
+	*)
+		zipname="Kaminari_v"$version"_"$device2;
+	;;
+esac;
+
 # Make the zip
-zipname="OptimizedStock_"$builddate"_"$device2;
+if [ $version ]; then
+	echo "Version: $version" > version.txt;
+else
+	echo "Build date and time: $builddate_full" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
