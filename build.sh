@@ -10,6 +10,15 @@ export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
+# Clone the custom anykernel repo
+if [ ! -d ../Custom_AnyKernel ]; then
+	echo "Custom AnyKernel not detected. Cloning git repository...";	
+	git clone -b $device https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
+else
+	cd ../Custom_AnyKernel;
+	git checkout $device;
+fi;
+
 # Output some basic info
 echo -e "Building KaminariKernel...";
 if [ $device == "falcon" ]; then
@@ -63,9 +72,10 @@ builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 zipdir="zip_"$device;
 outdir="release_"$device;
 
-# Clone the git repo if the zip dir doesn't exist
+# Make the zip dir if it doesn't exist
 if [ ! -d ../$zipdir ]; then
-	git clone -b $device https://github.com/Kamin4ri/Custom_Anykernel ../$zipdir;
+	mkdir ../$zipdir;	
+	cp -rf ../Custom_Anykernel/* ../$zipdir;
 fi;
 
 # Make the release dir if it doesn't exist
@@ -102,5 +112,6 @@ if [ $version ]; then
 	echo "Version: $version" > version.txt;
 else
 	echo "Build date and time: $builddate_full" > version.txt;
+fi;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
