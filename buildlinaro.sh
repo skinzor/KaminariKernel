@@ -33,9 +33,11 @@ else
 	exit 1;
 fi;
 
+# Tell when the build was started
+echo -e "Build date & time (start): `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`"
+
 if [ $2 ]; then
 	if [ $2 == "clean" ]; then
-		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		if [ $3 ]; then
 			echo -e "Number of parallel jobs: $3\n";
@@ -97,3 +99,6 @@ zipname="OptimizedStk_"$builddate"_"$device2;
 echo "Build date and time: $builddate_full" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../$outdir;
+
+# Tell when the build was finished
+echo -e "Build finished on: `date +"%d %B %Y, %H:%M:%S %Z (GMT %:z)"`"
