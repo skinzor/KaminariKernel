@@ -41,37 +41,37 @@ if [ $2 ]; then
 			if [ $3 ]; then
 				if [ $3 == "clean" ]; then
 					echo -e "The output of previous builds will be removed.\n";
+					if [ $4 ]; then
+						echo -e "Number of parallel jobs: $4\n";
+					else
+						echo -e "Number of parallel jobs: 3\n";
+					fi;						
 					make clean && make mrproper;
 				fi;
 			fi;
 		else
 			echo -e "No version number has been set. The build date & time will be used instead.\n";
 			echo -e "The output of previous builds will be removed.\n";
+			if [ $3 ]; then
+				echo -e "Number of parallel jobs: $3\n";
+			else
+				echo -e "Number of parallel jobs: 3\n";
+			fi;	
 			make clean && make mrproper;
 		fi;
 	else
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
+		if [ $3 ]; then
+			echo -e "Number of parallel jobs: $3\n";
+		else
+			echo -e "Number of parallel jobs: 3\n";
+		fi;			
 	fi;
 else
 	echo -e "No version number has been set. The build date & time will be used instead.\n";
 fi;
 
 # Build the kernel
-if [ $2 == "clean" ]; then
-	if [ $3 ]; then
-		echo -e "Number of parallel jobs: $3\n";
-	else
-		echo -e "Number of parallel jobs: 3\n";
-	fi;		
-else
-	if [ $4 ]; then
-		echo -e "Number of parallel jobs: $4\n";
-	else
-		echo -e "Number of parallel jobs: 3\n";
-	fi;		
-	
-fi;
-
 make kaminari/"$device"_defconfig;
 
 if [ $2 == "clean" ]; then
