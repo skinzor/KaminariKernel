@@ -38,7 +38,7 @@
 #include <linux/wakelock.h>
 #include <linux/workqueue.h>
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-#include <linux/lcd_notify.h>
+#include <linux/state_notifier.h>
 #include <linux/input/sweep2wake.h>
 #include <linux/input/doubletap2wake.h>
 #endif
@@ -1490,7 +1490,7 @@ static void ct_enable(void)
 	schedule_work(&ct_enable_work);
 }
 
-static int lcd_notifier_callback(struct notifier_block *this,
+static int state_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
 	if (s2w_call_activity || dt2w_call_activity)
@@ -1499,10 +1499,10 @@ static int lcd_notifier_callback(struct notifier_block *this,
 	mutex_lock(&ct406_misc_data->mutex);
 
 	switch (event) {
-		case LCD_EVENT_ON_END:
+		case STATE_NOTIFIER_ACTIVE:
 			ct_disable();
 			break;
-		case LCD_EVENT_OFF_START:
+		case STATE_NOTIFIER_SUSPEND:
 			ct_enable();
 			break;
 		default:
@@ -1768,9 +1768,9 @@ static int ct406_probe(struct i2c_client *client,
 	if (s2w_switch == 1 || dt2w_switch > 0)
 		ct406_enable_prox(ct);
 
-	notif.notifier_call = lcd_notifier_callback;
-	if (lcd_register_client(&notif)) {
-		pr_err("%s: Failed to register lcd notifier callback\n",
+	notif.notifier_call = state_notifier_callback;
+	if (state_register_client(&notif)) {
+		pr_err("%s: Failed to register State Notifier callback\n",
 			__func__);
 		goto error_create_registers_file_failed;
 	}
@@ -1817,7 +1817,7 @@ static int ct406_remove(struct i2c_client *client)
 	struct ct406_data *ct = i2c_get_clientdata(client);
 
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-	lcd_unregister_client(&notif);
+	state_unregister_client(&notif);
 #else
 	unregister_pm_notifier(&ct->pm_notifier);
 #endif
