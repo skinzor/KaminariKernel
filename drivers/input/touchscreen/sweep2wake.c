@@ -32,8 +32,10 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/input.h>
-#ifdef CONFIG_LCD_NOTIFY
+#if defined(CONFIG_LCD_NOTIFY)
 #include <linux/lcd_notify.h>
+#elif defined(CONFIG_STATE_NOTIFIER)
+#include <linux/state_notifier.h>
 #endif
 #include <linux/hrtimer.h>
 
@@ -500,7 +502,7 @@ static struct input_handler s2w_input_handler = {
 	.id_table	= s2w_ids,
 };
 
-#ifdef CONFIG_LCD_NOTIFY
+#if defined(CONFIG_LCD_NOTIFY)
 static int lcd_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
@@ -510,6 +512,28 @@ static int lcd_notifier_callback(struct notifier_block *this,
 			break;
 		case LCD_EVENT_OFF_END:
 			s2w_scr_suspended = true;
+			break;
+		default:
+			break;
+	}
+	return NOTIFY_OK;
+}
+#elif defined(CONFIG_STATE_NOTIFIER)
+static void s2w_suspend (void) {
+  	s2w_scr_suspended = true;
+}
+
+static void dt2w_resume (void) {
+  	s2w_scr_suspended = false;
+}
+
+static int state_notifier_callback (struct notifier_block *this, unsigned long event, void *data) {
+	switch (event) {
+		case STATE_NOTIFIER_ACTIVE:
+			s2w_resume();
+			break;
+		case STATE_NOTIFIER_SUSPEND:
+			s2w_suspend();
 			break;
 		default:
 			break;
@@ -617,9 +641,13 @@ static int __init sweep2wake_init(void)
 	if (rc)
 		pr_err("%s: Failed to register s2w_input_handler\n", __func__);
 
-#ifdef CONFIG_LCD_NOTIFY
+#if defined(CONFIG_LCD_NOTIFY)
 	notif.notifier_call = lcd_notifier_callback;
 	if (lcd_register_client(&notif))
+		return -EINVAL;
+#elif defined(CONFIG_STATE_NOTIFIER)
+	notif.notifier_call = state_notifier_callback;
+ 	if (state_register_client(&notif))
 		return -EINVAL;
 #endif
 
