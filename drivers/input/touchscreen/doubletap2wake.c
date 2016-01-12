@@ -293,10 +293,10 @@ static int state_notifier_callback(struct notifier_block *this,
 {
 	switch (event) {
 		case STATE_NOTIFIER_ACTIVE:
-			dt2w_resume();
+			dt2w_screen_suspended = false;
 			break;
 		case STATE_NOTIFIER_SUSPEND:
-			dt2w_suspend();
+			dt2w_screen_suspended = true;
 			break;
 		default:
 			break;
