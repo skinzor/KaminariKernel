@@ -28,7 +28,7 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/input.h>
-#include <linux/state_notifier.h>
+#include <linux/lcd_notify.h>
 #include <linux/hrtimer.h>
 #include <asm-generic/cputime.h>
 
@@ -288,14 +288,14 @@ static struct input_handler dt2w_input_handler = {
 	.id_table	= dt2w_ids,
 };
 
-static int state_notifier_callback(struct notifier_block *this,
+static int lcd_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
 	switch (event) {
-		case STATE_NOTIFIER_ACTIVE:
+		case LCD_EVENT_ON_END:
 			dt2w_scr_suspended = false;
 			break;
-		case STATE_NOTIFIER_SUSPEND:
+		case LCD_EVENT_OFF_END:
 			dt2w_scr_suspended = true;
 			break;
 		default:
@@ -388,8 +388,8 @@ static int __init doubletap2wake_init(void)
 	if (rc)
 		pr_err("%s: Failed to register dt2w_input_handler\n", __func__);
 
-	notif.notifier_call = state_notifier_callback;
-	if (state_register_client(&notif))
+	notif.notifier_call = lcd_notifier_callback;
+	if (lcd_register_client(&notif))
 		return -EINVAL;
 
 #ifndef ANDROID_TOUCH_DECLARED
