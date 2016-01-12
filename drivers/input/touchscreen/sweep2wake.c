@@ -32,7 +32,7 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/input.h>
-#include <linux/lcd_notify.h>
+#include <linux/state_notifier.h>
 #include <linux/hrtimer.h>
 
 /* uncomment since no touchscreen defines android touch, do that here */
@@ -498,15 +498,15 @@ static struct input_handler s2w_input_handler = {
 	.id_table	= s2w_ids,
 };
 
-static int lcd_notifier_callback(struct notifier_block *this,
+static int state_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
 	switch (event) {
-		case LCD_EVENT_ON_END:
-			s2w_scr_suspended = false;
+		case STATE_NOTIFIER_ACTIVE:
+			s2w_resume();
 			break;
-		case LCD_EVENT_OFF_END:
-			s2w_scr_suspended = true;
+		case STATE_NOTIFIER_SUSPEND:
+			s2w_suspend();
 			break;
 		default:
 			break;
@@ -613,8 +613,8 @@ static int __init sweep2wake_init(void)
 	if (rc)
 		pr_err("%s: Failed to register s2w_input_handler\n", __func__);
 
-	notif.notifier_call = lcd_notifier_callback;
-	if (lcd_register_client(&notif))
+	notif.notifier_call = state_notifier_callback;
+	if (state_register_client(&notif))
 		return -EINVAL;
 
 #ifndef ANDROID_TOUCH_DECLARED
