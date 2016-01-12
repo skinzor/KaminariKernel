@@ -1029,7 +1029,8 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 			rc = mdss_dsi_unblank(pdata);
 		pdata->panel_info.cont_splash_esd_rdy = true;
 #ifdef CONFIG_STATE_NOTIFIER
-		state_notifier_call_chain(STATE_NOTIFIER_ACTIVE, NULL);
+		if (!use_fb_notifier)
+			state_notifier_call_chain(STATE_NOTIFIER_ACTIVE, NULL);
 #endif
 		lcd_notifier_call_chain(LCD_EVENT_ON_END, NULL);
 		break;
@@ -1046,7 +1047,8 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		lcd_notifier_call_chain(LCD_EVENT_OFF_END, NULL);
 		break;
 #ifdef CONFIG_STATE_NOTIFIER
-		state_notifier_call_chain(STATE_NOTIFIER_SUSPEND, NULL);
+		if (!use_fb_notifier)
+			state_notifier_call_chain(STATE_NOTIFIER_SUSPEND, NULL);
 #endif
 	case MDSS_EVENT_CONT_SPLASH_FINISH:
 		if (ctrl_pdata->off_cmds.link_state == DSI_LP_MODE)
