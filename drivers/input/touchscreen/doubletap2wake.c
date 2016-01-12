@@ -28,10 +28,8 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/input.h>
-#if defined(CONFIG_LCD_NOTIFY)
+#ifdef CONFIG_LCD_NOTIFY
 #include <linux/lcd_notify.h>
-#elif defined(CONFIG_STATE_NOTIFIER)
-#include <linux/state_notifier.h>
 #endif
 #include <linux/hrtimer.h>
 #include <asm-generic/cputime.h>
@@ -292,7 +290,7 @@ static struct input_handler dt2w_input_handler = {
 	.id_table	= dt2w_ids,
 };
 
-#if defined(CONFIG_LCD_NOTIFY)
+#ifdef CONFIG_LCD_NOTIFY
 static int lcd_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
@@ -302,28 +300,6 @@ static int lcd_notifier_callback(struct notifier_block *this,
 			break;
 		case LCD_EVENT_OFF_END:
 			dt2w_scr_suspended = true;
-			break;
-		default:
-			break;
-	}
-	return NOTIFY_OK;
-}
-#elif defined(CONFIG_STATE_NOTIFIER)
-static void dt2w_suspend (void) {
-  	dt2w_scr_suspended = true;
-}
-
-static void dt2w_resume (void) {
-  	dt2w_scr_suspended = false;
-}
-
-static int state_notifier_callback (struct notifier_block *this, unsigned long event, void *data) {
-	switch (event) {
-		case STATE_NOTIFIER_ACTIVE:
-			dt2w_resume();
-			break;
-		case STATE_NOTIFIER_SUSPEND:
-			dt2w_suspend();
 			break;
 		default:
 			break;
@@ -416,13 +392,9 @@ static int __init doubletap2wake_init(void)
 	if (rc)
 		pr_err("%s: Failed to register dt2w_input_handler\n", __func__);
 
-#if defined(CONFIG_LCD_NOTIFY)
+#ifdef CONFIG_LCD_NOTIFY
 	notif.notifier_call = lcd_notifier_callback;
 	if (lcd_register_client(&notif))
-		return -EINVAL;
-#elif defined(CONFIG_STATE_NOTIFIER)
-	notif.notifier_call = state_notifier_callback;
- 	if (state_register_client(&notif))
 		return -EINVAL;
 #endif
 
