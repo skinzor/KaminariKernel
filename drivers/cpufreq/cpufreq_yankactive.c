@@ -37,7 +37,7 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_yankactive.h>
 
-#define DEFAULT_HISPEED_FREQ	1190400
+#define DEFAULT_HISPEED_FREQ	1593600
 static int active_count;
 
 struct cpufreq_yankactive_cpuinfo {
