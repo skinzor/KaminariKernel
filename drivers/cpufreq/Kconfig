@@ -289,8 +289,6 @@ config CPU_FREQ_GOV_LIONHEART
              lionheart' - a "smart" optimized governor!
              If in doubt, say N.
 
-          If in doubt, say N.
-
 config CPU_FREQ_GOV_IMPULSE
 	tristate "'impulse' cpufreq policy governor"
 	help
