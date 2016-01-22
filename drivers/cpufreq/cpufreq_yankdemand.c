@@ -89,7 +89,7 @@ freq_table_idx yank_pre_freq_idx[SUP_CORE_NUM] = {};
 #if defined(SMART_UP_SLOW_UP_AT_HIGH_FREQ)
 
 #define SUP_SLOW_UP_FREQUENCY 		(787200)
-#define SUP_HIGH_SLOW_UP_FREQUENCY 	(1094400)
+#define SUP_HIGH_SLOW_UP_FREQUENCY 	(998400)
 #define SUP_SLOW_UP_LOAD 		(95)  
 
 typedef struct {
