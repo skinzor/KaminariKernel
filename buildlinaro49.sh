@@ -65,7 +65,7 @@ if [ $2 ]; then
 					if [ $4 ]; then
 						echo -e "Number of parallel jobs: $4\n";
 					else
-						echo -e "Number of parallel jobs: 3\n";
+						echo -e "Number of parallel jobs: 4\n";
 					fi;
 					make clean && make mrproper;
 				elif [ $3 = "clean" ]; then
@@ -74,7 +74,7 @@ if [ $2 ]; then
 					if [ $4 ]; then
 						echo -e "Number of parallel jobs: $4\n";
 					else
-						echo -e "Number of parallel jobs: 3\n";
+						echo -e "Number of parallel jobs: 4\n";
 					fi;
 					make clean;
 				fi;
@@ -85,7 +85,7 @@ if [ $2 ]; then
 			if [ $3 ]; then
 				echo -e "Number of parallel jobs: $3\n";
 			else
-				echo -e "Number of parallel jobs: 3\n";
+				echo -e "Number of parallel jobs: 4\n";
 			fi;
 		fi;
 	fi;
@@ -97,7 +97,7 @@ fi;
 # Build the kernel
 make kaminari/falcon_defconfig;
 
-if [ $2 = "clean" -o $2 = "clean_full" ]; then
+if [ "$2" = "clean" -o "$2" = "clean_full" ]; then
 	if [ $3 ]; then	
 		make -j$3;
 	else
