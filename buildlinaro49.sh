@@ -22,11 +22,11 @@ fi;
 
 # Output some basic info
 echo -e "Building KaminariKernel...";
-if [ $device = "falcon" ]; then
+if [ "$device" = "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
 	device2="Falcon";
-elif [ $device = "peregrine" ]; then
-	echo -e "Device: Moto G 4G (peregrine)";
+elif [ "$device" = "falcon_gpe" ]; then
+	echo -e "Device: Moto G Google Play Edition (falcon_gpe)";
 	device2="Peregrine";
 else
 	echo -e "Invalid device. Aborting.";
@@ -95,7 +95,7 @@ else
 fi;
 
 # Build the kernel
-make kaminari/"$device"_defconfig;
+make kaminari/falcon_defconfig;
 
 if [ $2 = "clean" -o $2 = "clean_full" ]; then
 	if [ $3 ]; then	
