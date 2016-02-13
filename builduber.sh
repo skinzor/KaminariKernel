@@ -25,9 +25,9 @@ echo -e "Building Optimized Stock Kernel...";
 if [ $device == "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
 	device2="Falcon";
-elif [ $device == "peregrine" ]; then
-	echo -e "Device: Moto G 4G (peregrine)";
-	device2="Peregrine";
+elif [ $device == "falcon_gpe" ]; then
+	echo -e "Device: Moto G Google Play Edition";
+	device2="FalconGPE";
 else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
@@ -49,7 +49,7 @@ if [ $2 ]; then
 fi;
 
 # Build the kernel
-make "$device"_defconfig;
+make falcon_defconfig;
 
 if [ $3 ]; then	
 	make -j$3;
@@ -95,7 +95,7 @@ ls -l ../$zipdir/zImage-dtb;
 cd ../$zipdir;
 
 # Set zip name
-zipname="OptimizedStk_"$builddate"_"$device2;
+zipname="KaminariSL_"$builddate"_"$device2;
 
 # Make the zip
 echo "Build date and time: $builddate_full" > version.txt;
