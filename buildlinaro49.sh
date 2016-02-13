@@ -101,13 +101,13 @@ if [ $2 = "clean" -o $2 = "clean_full" ]; then
 	if [ $3 ]; then	
 		make -j$3;
 	else
-		make -j3;
+		make -j4;
 	fi;
 else
 	if [ $4 ]; then	
 		make -j$4;
 	else
-		make -j3;
+		make -j4;
 	fi;
 fi;
 
