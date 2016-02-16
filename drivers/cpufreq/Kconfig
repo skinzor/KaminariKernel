@@ -130,12 +130,6 @@ config CPU_FREQ_DEFAULT_GOV_YANKACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'yankactive' governor for latency-sensitive workloads.
 
-config CPU_FREQ_DEFAULT_GOV_WHEATLEY
-    bool "wheatley"
-    select CPU_FREQ_GOV_WHEATLEY
-    help
-      Use the CPUFreq governor 'wheatley' as default.
-
 config CPU_FREQ_DEFAULT_GOV_SMARTMAX
     bool "smartmax"
     select CPU_FREQ_GOV_SMARTMAX
@@ -148,22 +142,11 @@ config CPU_FREQ_DEFAULT_GOV_LIONHEART
     help
       Use the CPUFreq governor 'lionheart' as default.
 
-config CPU_FREQ_DEFAULT_GOV_INTELLIACTIVE
-	bool "intelliactive"
-	select CPU_FREQ_GOV_INTELLIACTIVE
-	help
-	  Use the CPUFreq governor 'intelliactive' as default.
-
 config CPU_FREQ_DEFAULT_GOV_IMPULSE
 	bool "impulse"
 	select CPU_FREQ_GOV_IMPULSE
 	help
 	  Use the CPUFreq governor 'impulse' as default.
-
-config CPU_FREQ_DEFAULT_GOV_DARKNESS
-	bool "darkness"
-	select CPU_FREQ_GOV_DARKNESS      
-
 
 config CPU_FREQ_DEFAULT_GOV_DANCEDANCE
     bool "dancedance"
@@ -294,10 +277,6 @@ config CPU_FREQ_GOV_YANKACTIVE
 	  and can be achieved using interactive with a script. This is added for
 	  simplification purposes for myself.
 
-config CPU_FREQ_GOV_WHEATLEY
-	tristate "'wheatley' cpufreq governor"
-	depends on CPU_FREQ  
-
 config CPU_FREQ_GOV_SMARTMAX
            tristate "'smartmax' cpufreq governor"
            depends on CPU_FREQ
@@ -311,32 +290,12 @@ config CPU_FREQ_GOV_LIONHEART
              lionheart' - a "smart" optimized governor!
              If in doubt, say N.
 
-config CPU_FREQ_GOV_INTELLIACTIVE
-        tristate "'intelliactive' cpufreq policy governor"
-        help
-          'intelliactive' - This driver adds a dynamic cpufreq policy governor
-          designed for latency-sensitive workloads.
-
-          This governor attempts to reduce the latency of clock
-          increases so that the system is more responsive to
-          interactive workloads.
-
-          To compile this driver as a module, choose M here: the
-          module will be called cpufreq_interactive.
-
-          For details, take a look at linux/Documentation/cpu-freq.
-
-          If in doubt, say N.
-
 config CPU_FREQ_GOV_IMPULSE
 	tristate "'impulse' cpufreq policy governor"
 	help
 	  'impulse' - This driver adds a dynamic cpufreq policy governor
 	  designed for optimized balance between power and performance.
   	  If in doubt, say N. 
-
-config CPU_FREQ_GOV_DARKNESS
-	tristate "'darkness' cpufreq policy governor"
 
 config CPU_FREQ_GOV_DANCEDANCE
            tristate "'dancedance' cpufreq governor"
