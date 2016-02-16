@@ -25,26 +25,26 @@ echo -e "Building KaminariKernel...";
 if [ "$device" = "falcon" ]; then
 	echo -e "Device: Moto G (falcon)";
 	device2="Falcon";
-elif [ "$device" = "falcon_gpe" ]; then
+elif [ "$device" = "falcon_gpe" -o "$device" = "falcongpe" ]; then
 	echo -e "Device: Moto G Google Play Edition (falcon_gpe)";
-	device2="Peregrine";
+	device2="FalconGPE";
 else
 	echo -e "Invalid device. Aborting.";
 	exit 1;
 fi;
 
-if [ $2 ]; then
+if [ "$2" ]; then
 	if [ $2 = "clean_full" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
-		if [ $3 ]; then
+		if [ "$3" ]; then
 			echo -e "Number of parallel jobs: $3\n";
 		else
 			echo -e "Number of parallel jobs: 3\n";
 		fi;
 		make clean && make mrproper;
-	elif [ $2 = "clean" ]; then
+	elif [ "$2" = "clean" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
@@ -55,7 +55,7 @@ if [ $2 ]; then
 		fi;
 		make clean;
 	else
-		if [ $2 != "none" ]; then
+		if [ "$2" != "none" ]; then
 			version="$2";
 			echo -e "Version: "$version"\n";
 			if [ $3 ]; then
@@ -97,7 +97,7 @@ fi;
 # Build the kernel
 make kaminari/falcon_defconfig;
 
-if [ "$2" = "clean" -o "$2" = "clean_full" ]; then
+if [ "$2" = "clean" -o" $2" = "clean_full" ]; then
 	if [ $3 ]; then	
 		make -j$3;
 	else

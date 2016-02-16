@@ -33,18 +33,18 @@ else
 	exit 1;
 fi;
 
-if [ $2 ]; then
+if [ "$2" ]; then
 	if [ $2 = "clean_full" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
-		if [ $3 ]; then
+		if [ "$3" ]; then
 			echo -e "Number of parallel jobs: $3\n";
 		else
 			echo -e "Number of parallel jobs: 3\n";
 		fi;
 		make clean && make mrproper;
-	elif [ $2 = "clean" ]; then
+	elif [ "$2" = "clean" ]; then
 		echo -e "No version number has been set. The build date & time will be used instead.\n";
 		echo -e "The output of previous builds will be removed.\n";
 		echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
@@ -55,7 +55,7 @@ if [ $2 ]; then
 		fi;
 		make clean;
 	else
-		if [ $2 != "none" ]; then
+		if [ "$2" != "none" ]; then
 			version="$2";
 			echo -e "Version: "$version"\n";
 			if [ $3 ]; then
@@ -65,7 +65,7 @@ if [ $2 ]; then
 					if [ $4 ]; then
 						echo -e "Number of parallel jobs: $4\n";
 					else
-						echo -e "Number of parallel jobs: 3\n";
+						echo -e "Number of parallel jobs: 4\n";
 					fi;
 					make clean && make mrproper;
 				elif [ $3 = "clean" ]; then
@@ -74,7 +74,7 @@ if [ $2 ]; then
 					if [ $4 ]; then
 						echo -e "Number of parallel jobs: $4\n";
 					else
-						echo -e "Number of parallel jobs: 3\n";
+						echo -e "Number of parallel jobs: 4\n";
 					fi;
 					make clean;
 				fi;
@@ -85,7 +85,7 @@ if [ $2 ]; then
 			if [ $3 ]; then
 				echo -e "Number of parallel jobs: $3\n";
 			else
-				echo -e "Number of parallel jobs: 3\n";
+				echo -e "Number of parallel jobs: 4\n";
 			fi;
 		fi;
 	fi;
@@ -97,17 +97,17 @@ fi;
 # Build the kernel
 make kaminari/falcon_defconfig;
 
-if [ $2 = "clean" -o $2 = "clean_full" ]; then
+if [ "$2" = "clean" -o" $2" = "clean_full" ]; then
 	if [ $3 ]; then	
 		make -j$3;
 	else
-		make -j3;
+		make -j4;
 	fi;
 else
 	if [ $4 ]; then	
 		make -j$4;
 	else
-		make -j3;
+		make -j4;
 	fi;
 fi;
 
