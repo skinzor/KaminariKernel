@@ -1053,7 +1053,6 @@
 		compatible = "qcom,cpubw";
 		qcom,cpu-mem-ports = <1 512>;
 		qcom,bw-tbl =
-		 	< 762 /* 100 MHz */ >,
  			< 1014 /* 133 MHz */ >,
 			< 1525 /* 200 MHz */ >,
 			< 2441 /* 320 MHz */ >,
@@ -1065,8 +1064,6 @@
 		reg = <0 4>;
 		compatible = "qcom,msm-cpufreq";
 		qcom,cpufreq-table =
- 			<  192000 762 >,
- 			<  249600 762 >,
  			<  300000 1014 >,
  			<  384000 1525 >,
  			<  600000 1525 >,
