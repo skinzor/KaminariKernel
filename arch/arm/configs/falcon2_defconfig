@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.4.42 Kernel Configuration
+# Linux/arm 3.4.110 Kernel Configuration
 #
 
 #---------------------------------------
@@ -3190,7 +3190,7 @@ CONFIG_PRIMA_WLAN_OKC=y
 CONFIG_PRIMA_WLAN_11AC_HIGH_TP=y
 CONFIG_WLAN_FEATURE_11W=y
 CONFIG_QCOM_VOWIFI_11R=y
-# CONFIG_QCOM_TDLS is not set
+CONFIG_QCOM_TDLS=y
 CONFIG_ENABLE_LINUX_REG=y
 
 #
