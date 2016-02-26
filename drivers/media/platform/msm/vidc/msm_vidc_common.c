@@ -596,7 +596,7 @@ static void handle_event_change(enum command_response cmd, void *data)
 		} else {
 			dprintk(VIDC_DBG,
 				"V4L2_EVENT_SEQ_CHANGED_SUFFICIENT\n");
-			if (msm_comm_get_stream_output_mode(inst) !=
+			if ((msm_comm_get_stream_output_mode(inst)) !=
 				HAL_VIDEO_DECODER_SECONDARY) {
 				dprintk(VIDC_DBG,
 					"event_notify->height = %d event_notify->width = %d\n",
