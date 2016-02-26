@@ -95,7 +95,7 @@ else
 fi;
 
 # Build the kernel
-make kaminari/falcon_defconfig;
+make falcon_defconfig;
 
 if [ "$2" = "clean" -o "$2" = "clean_full" ]; then
 	if [ $3 ]; then	
