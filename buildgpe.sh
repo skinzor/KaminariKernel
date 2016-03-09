@@ -79,7 +79,8 @@ if [ $version ] && [ "$version" != "" ]; then
 fi;
 	
 
-echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\nNumber of parallel jobs: $numjobs\n";
+echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`";
+[ $numjobs != 0 ] && echo -e "Number of parallel jobs: $numjobs";
 			
 # Build the kernel
 make falcon_defconfig;
@@ -87,7 +88,7 @@ make falcon_defconfig;
 if [ $numjobs ] && [ $numjobs != 0 ]; then
 	make -j$numjobs;
 else
-	make;
+	make -j4;
 fi;
 
 # Tell when the build was finished
