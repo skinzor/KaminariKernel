@@ -34,7 +34,7 @@
 #include <linux/of_gpio.h>
 #include <linux/module.h>
 #include <linux/slab.h>
-#include <linux/lcd_notify.h>
+#include <linux/state_notifier.h>
 #include <linux/uaccess.h>
 #include <linux/workqueue.h>
 #include <linux/akm8963.h>
@@ -1332,14 +1332,12 @@ static void akm8963_resume(void)
 	wake_up(&s_akm->open_wq);
 }
 
-static int state_notifier_callback(struct notifier_block *this,
-				unsigned long event, void *data)
-{
+static int state_notifier_callback(struct notifier_block* this, unsigned long event, void* data) {
 	switch (event) {
-		case LCD_EVENT_ON_END:
+		case STATE_NOTIFIER_ACTIVE:
 			akm8963_resume();
 			break;
-		case LCD_EVENT_OFF_END:
+		case STATE_NOTIFIER_SUSPEND:
 			akm8963_suspend();
 			break;
 		default:
@@ -1390,9 +1388,8 @@ akm8963_of_init(struct i2c_client *client)
 }
 #endif
 
-int akm8963_probe(struct i2c_client *client, const struct i2c_device_id *id)
-{
-	struct akm8963_platform_data *pdata;
+int akm8963_probe (struct i2c_client* client, const struct i2c_device_id* id) {
+	struct akm8963_platform_data* pdata;
 	int err = 0;
 	int i;
 
@@ -1530,9 +1527,9 @@ int akm8963_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	}
 
 	s_akm->notif.notifier_call = state_notifier_callback;
-	err = lcd_register_client(&s_akm->notif);
+	err = state_register_client(&s_akm->notif);
 	if (err < 0) {
-		pr_err("%s:Register_lcd_notifier failed: %d\n", __func__, err);
+		pr_err("%s:Register_state_notifier failed: %d\n", __func__, err);
 		goto exit_pm_fail;
 	}
 
@@ -1560,8 +1557,7 @@ exit_i2c_fail:
 	return err;
 }
 
-static int akm8963_remove(struct i2c_client *client)
-{
+static int akm8963_remove (struct i2c_client* client) {
 	struct akm8963_data *akm = i2c_get_clientdata(client);
 
 	if (akm->vdd != NULL) {
@@ -1569,7 +1565,7 @@ static int akm8963_remove(struct i2c_client *client)
 		regulator_put(akm->vdd);
 	}
 
-	lcd_unregister_client(&s_akm->notif);
+	state_unregister_client(&s_akm->notif);
 	remove_sysfs_interfaces(akm);
 	if (misc_deregister(&akm8963_dev) < 0)
 		dev_err(&client->dev, "%s: misc deregister failed.", __func__);
