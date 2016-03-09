@@ -35,21 +35,56 @@ if [ $1 ]; then
 			make mrproper;
 			;;
 		*)
-			for i in $sequence; do
-				if [ $1 = $i ]; then
-					numjobs=$1;
+			if [ `echo $1 | gawk --re-interval "/v/"` != "" ]; then
+				version=`echo $1 | cut -d"v" -f2`;
+				if [ $2 ]; then
+					case $2 in
+						"clean")
+							echo -e "All compiled files from previous builds will be removed.\n";
+							make clean;
+							;;
+						"clean_full" | "cleanfull" | "clean_all" | "cleanall" ) 
+							echo -e "The configuration file, dependencies and all compiled files from previous builds will be removed.\n";
+							make mrproper;
+							;;
+						*)
+							for i in $sequence; do
+								if [ $2 = $i ]; then
+									numjobs=$2;
+								fi;
+							done;
+							;;
+					esac;
+					if [ $3 ]; then
+						for i in $sequence; do
+							if [ $3 = $i ]; then
+								numjobs=$3;
+							fi;
+						done;
+					fi;
 				fi;
-			done;
-			;;
+			else
+				for i in $sequence; do
+					if [ $1 = $i ]; then
+						numjobs=$1;
+					fi;
+				done;
+			fi;
+			;;				
 	esac;
 fi;
-					
+
+if [ $version ] && [ "$version" != "" ]; then
+	echo -e "Version: $version\n";
+fi;
+	
+
 echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\nNumber of parallel jobs: $numjobs\n";
 			
 # Build the kernel
 make falcon_defconfig;
 
-if [ $numjobs != 0 ]; then
+if [ $numjobs ] && [ $numjobs != 0 ]; then
 	make -j$numjobs;
 else
 	make;
@@ -90,9 +125,17 @@ ls -l ../zip_falcon/zImage-dtb;
 cd ../zip_falcon;
 
 # Set zip name
-zipname="Kaminari_"$builddate"_Falcon";
+if [ $version ] && [ "$version" != "" ]; then
+	zipname="Kaminari_v"$version"_Falcon";
+else
+	zipname="Kaminari_"$builddate"_Falcon";
+fi;
 
 # Make the zip
-echo "Build date and time: $builddate_full" > version.txt;
+if [ $version ] && [ "$version" != "" ]; then
+	echo -e "Version: $version" > version.txt && echo -e "Build date and time: $builddate_full" > builddate.txt;
+else
+	echo -e "* Build date and time: $builddate_full" > builddate.txt;
+fi;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../release_falcon;
