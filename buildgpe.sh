@@ -49,7 +49,7 @@ if [ $1 ]; then
 			fi;
 			;;
 		*)
-			if [ `echo $1 | gawk --re-interval "/v/"` != "" ]; then
+			if [[ `echo $1 | gawk --re-interval "/v/"` != "" ]]; then
 				version=`echo $1 | cut -d"v" -f2`;
 				if [ $2 ]; then
 					case $2 in
@@ -150,6 +150,7 @@ fi;
 if [ $version ] && [ "$version" != "" ]; then
 	echo -e "Version: $version" > version.txt && echo -e "Build date and time: $builddate_full" > builddate.txt;
 else
+	[ -e version.txt ] && rm version.txt;
 	echo -e "* Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
