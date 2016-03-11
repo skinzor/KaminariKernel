@@ -29,10 +29,24 @@ if [ $1 ]; then
 		"clean")
 			echo -e "All compiled files from previous builds will be removed.\n";
 			make clean;
+			if [ $2 ]; then
+				for i in $sequence; do
+					if [ $2 = $i ]; then
+						numjobs=$2;
+					fi;
+				done;
+			fi;				
 			;;
 		"clean_full" | "cleanfull" | "clean_all" | "cleanall" ) 
 			echo -e "The configuration file, dependencies and all compiled files from previous builds will be removed.\n";
 			make mrproper;
+			if [ $2 ]; then
+				for i in $sequence; do
+					if [ $2 = $i ]; then
+						numjobs=$2;
+					fi;
+				done;
+			fi;
 			;;
 		*)
 			if [ `echo $1 | gawk --re-interval "/v/"` != "" ]; then
