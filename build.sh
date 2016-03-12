@@ -151,7 +151,7 @@ if [ $version ] && [ "$version" != "" ]; then
 	echo -e "Version: $version" > version.txt && echo -e "Build date and time: $builddate_full" > builddate.txt;
 else
 	[ -e version.txt ] && rm version.txt;
-	echo -e "* Build date and time: $builddate_full" > builddate.txt;
+	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
 mv $zipname.zip ../release_falcon;
