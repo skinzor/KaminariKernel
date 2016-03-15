@@ -56,10 +56,14 @@
 #define GOV_IDLE_FREQ 384000
 
 #define DEFAULT_SUSPEND_IDEAL_FREQ GOV_IDLE_FREQ
-static unsigned int suspend_ideal_freq;
+static unsigned int suspend_ideal_freq = 384000;
 
 #define DEFAULT_AWAKE_IDEAL_FREQ GOV_IDLE_FREQ
-static unsigned int awake_ideal_freq;
+#ifdef CONFIG_CPU_OVERCLOCK
+static unsigned int awake_ideal_freq = 1344000;
+#else
+static unsigned int awake_ideal_freq = 787200;
+#endif
 
 /*
  * Freqeuncy delta when ramping up above the ideal freqeuncy.
@@ -111,7 +115,11 @@ static unsigned int sampling_rate;
 #define DEFAULT_INPUT_BOOST_DURATION 50000000
 static unsigned int input_boost_duration;
 
+#ifdef CONFIG_CPU_OVERCLOCK
+static unsigned int touch_poke_freq = 1344000;
+#else
 static unsigned int touch_poke_freq = 787200;
+#endif
 static bool touch_poke = true;
 
 /*
@@ -123,7 +131,11 @@ static bool ramp_up_during_boost = true;
  * external boost interface - boost if duration is written
  * to sysfs for boost_duration
  */
+#ifdef CONFIG_CPU_OVERCLOCK
+static unsigned int boost_freq = 1344000;
+#else
 static unsigned int boost_freq = 787200;
+#endif
 static bool boost = true;
 
 /* in nsecs */
