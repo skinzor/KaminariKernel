@@ -28,6 +28,10 @@
 #include <linux/workqueue.h>
 #include <linux/slab.h>
 
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
+
 /*
  * dbs is used in this file as a shortform for demandbased switching
  * It helps to keep variable names smaller, simpler
@@ -40,9 +44,21 @@
 #define DEF_FREQUENCY_UP_THRESHOLD_MULTI_CORE		(80)	/* Yank555.lu : new */
 #define DEF_SAMPLING_DOWN_FACTOR			(2)	/* Yank555.lu : was 1 */
 #define MAX_SAMPLING_DOWN_FACTOR			(100000)
-#define DEF_INPUT_BOOST					(998400)/* Yank555.lu : new */
+
+#ifdef CONFIG_CPU_OVERCLOCK
+#define DEF_INPUT_BOOST					(1094400)/* Yank555.lu : new */
+#else
+#define DEF_INPUT_BOOST					(787200)/* Yank555.lu : new */
+#endif
+
 #define DEF_IO_IS_BUSY					(1)	/* Yank555.lu : new */
+
+#ifdef CONFIG_CPU_OVERCLOCK
+#define DEF_OPTIMAL_FREQUENCY				(1344000)/* Yank555.lu : new */
+#else
 #define DEF_OPTIMAL_FREQUENCY				(1094400)/* Yank555.lu : new */
+#endif
+
 #define DEF_SYNC_FREQUENCY				(787200)/* Yank555.lu : new */
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL		(3)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL_MULTI_CORE	(3)	/* Yank555.lu : new */
@@ -55,8 +71,19 @@
 #define STEP_UP
 #ifdef STEP_UP
 #define DEF_FREQ_STEP					(25)
-#define DEF_STEP_UP_EARLY_HISPEED			(998400)
+
+#ifdef CONFIG_CPU_OVERCLOCK
+#define DEF_STEP_UP_EARLY_HISPEED			(1305600)
+#else
+#define DEF_STEP_UP_EARLY_HISPEED			(787200)
+#endif
+
+#ifdef CONFIG_CPU_OVERCLOCK
+#define DEF_STEP_UP_INTERIM_HISPEED			(1593600)
+#else
 #define DEF_STEP_UP_INTERIM_HISPEED			(1190400)
+#endif
+
 #define DEF_SAMPLING_EARLY_HISPEED_FACTOR		(2)
 #define DEF_SAMPLING_INTERIM_HISPEED_FACTOR		(3)
 #endif

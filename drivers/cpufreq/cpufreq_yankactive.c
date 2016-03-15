@@ -30,7 +30,11 @@
 #include <linux/slab.h>
 #include <asm/cputime.h>
 
-#define DEFAULT_HISPEED_FREQ		1190400
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
+
+#define DEFAULT_HISPEED_FREQ		1593600
 #define DEFAULT_SYNC_FREQ		0
 #define DEFAULT_UP_THRESHOLD_FREQ	0
 #define DEFAULT_UP_THRESHOLD_LOAD	0
