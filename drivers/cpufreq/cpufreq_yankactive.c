@@ -34,7 +34,12 @@
 #include <linux/state_notifier.h>
 #endif
 
+#ifdef CONFIG_CPU_OVERCLOCK
 #define DEFAULT_HISPEED_FREQ		1593600
+#else
+#define DEFAULT_HISPEED_FREQ		1190400
+#endif
+
 #define DEFAULT_SYNC_FREQ		0
 #define DEFAULT_UP_THRESHOLD_FREQ	0
 #define DEFAULT_UP_THRESHOLD_LOAD	0
