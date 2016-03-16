@@ -110,8 +110,8 @@ static unsigned int sampling_rate;
 /* in nsecs */
 #define DEFAULT_INPUT_BOOST_DURATION 50000000
 static unsigned int input_boost_duration;
-
 static unsigned int touch_poke_freq = 1344000;
+static bool touch_poke = true;
 
 /*
  * should ramp_up steps during boost be possible
