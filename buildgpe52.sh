@@ -17,7 +17,7 @@ if [ ! -d ../Custom_AnyKernel ]; then
 	git clone -q -b $device https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
 else
 	cd ../Custom_AnyKernel;
-	git checkout -q falcon;
+	git checkout -q falcon_gpe;
 	cd ../$this;
 fi;
 
@@ -141,9 +141,9 @@ cd ../zip_falcon_gpe;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
-	zipname="Kaminari_v"$version"_Falcon";
+	zipname="Kaminari_v"$version"_FalconGPE";
 else
-	zipname="Kaminari_"$builddate"_Falcon";
+	zipname="Kaminari_"$builddate"_FalconGPE";
 fi;
 
 # Make the zip
