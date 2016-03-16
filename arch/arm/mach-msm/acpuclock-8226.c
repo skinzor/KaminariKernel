@@ -60,9 +60,6 @@ static struct msm_bus_scale_pdata bus_client_pdata = {
 };
 
 static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p1[] = {
-	{ 1,  96000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  192000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  249000, ACPUPLL,    5, 2,   975000,    975000, 4 },
 	{ 1,  300000, PLL0,    4, 2,   975000,    975000, 4 },
 	{ 1,  384000, ACPUPLL, 5, 2,   975000,    975000, 4 },
 	{ 1,  600000, PLL0,    4, 0,   1025000, 1025000, 6 },
@@ -74,9 +71,6 @@ static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p1[] = {
 };
 
 static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p2[] = {
-	{ 1,  96000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  192000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  249000, ACPUPLL,    5, 2,   975000,    975000, 4 },
 	{ 1,  300000, PLL0,    4, 2,   975000,    975000, 4 },
 	{ 1,  384000, ACPUPLL, 5, 2,   975000,    975000, 4 },
 	{ 1,  600000, PLL0,    4, 0,   1025000, 1025000, 6 },
@@ -88,9 +82,6 @@ static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p2[] = {
 };
 
 static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p4[] = {
-	{ 1,  96000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  192000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  249000, ACPUPLL,    5, 2,   975000,    975000, 4 },
 	{ 1,  300000, PLL0,    4, 2,   975000,    975000, 4 },
 	{ 1,  384000, ACPUPLL, 5, 2,   975000,    975000, 4 },
 	{ 1,  600000, PLL0,    4, 0,   1025000, 1025000, 6 },
@@ -105,9 +96,6 @@ static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p4[] = {
 };
 
 static struct clkctl_acpu_speed acpu_freq_tbl_8226_1p6[] = {
-	{ 1,  96000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  192000, ACPUPLL,    5, 2,   975000,    975000, 4 },
-	{ 1,  249000, ACPUPLL,    5, 2,   975000,    975000, 4 },
 	{ 1,  300000, PLL0,    4, 2,   975000,    975000, 4 },
 	{ 1,  384000, ACPUPLL, 5, 2,   975000,    975000, 4 },
 	{ 1,  600000, PLL0,    4, 0,   1025000, 1025000, 6 },
