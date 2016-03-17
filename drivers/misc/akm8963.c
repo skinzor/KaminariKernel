@@ -602,9 +602,10 @@ static struct miscdevice akm8963_dev = {
 /***** akm sysfs functions ******************************************/
 
 static int create_device_attributes (struct device* dev, struct device_attribute* attrs) {
+	int i;
 	int err = 0;
 
-	for (int i = 0; NULL != attrs[i].attr.name; ++i) {
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i) {
 		err = device_create_file(dev, &attrs[i]);
 		if (0 != err)
 			break;
@@ -620,16 +621,19 @@ static int create_device_attributes (struct device* dev, struct device_attribute
 }
 
 static void remove_device_attributes (struct device* dev, struct device_attribute* attrs) {
-	for (int i = 0; NULL != attrs[i].attr.name; ++i)
+	int i;
+
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		device_remove_file(dev, &attrs[i]);
 }
 
 static int create_device_binary_attributes (struct kobject* kobj, struct bin_attribute* attrs) {
+	int i;
 	int err = 0;
 
 	err = 0;
 
-	for (int i = 0; NULL != attrs[i].attr.name; ++i) {
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i) {
 		err = sysfs_create_bin_file(kobj, &attrs[i]);
 		if (0 != err)
 			break;
@@ -645,7 +649,9 @@ static int create_device_binary_attributes (struct kobject* kobj, struct bin_att
 }
 
 static void remove_device_binary_attributes (struct kobject* kobj, struct bin_attribute* attrs) {
-	for (int i = 0; NULL != attrs[i].attr.name; ++i)
+	int i;
+
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		sysfs_remove_bin_file(kobj, &attrs[i]);
 }
 
@@ -1334,6 +1340,7 @@ static inline struct akm8963_platform_data* akm8963_of_init (struct i2c_client*c
 int akm8963_probe(struct i2c_client* client, struct i2c_device_id const* id) {
 	struct akm8963_platform_data* pdata;
 	int err = 0;
+	int i;
 
 	dev_dbg(&client->dev, "%s: start", __func__);
 
@@ -1428,7 +1435,7 @@ int akm8963_probe(struct i2c_client* client, struct i2c_device_id const* id) {
 	s_akm->enable_flag = 0;
 	s_akm->first_time_flag = 0;
 
-	for (int i = 0; i < AKM_NUM_SENSORS; i++)
+	for (i = 0; i < AKM_NUM_SENSORS; i++)
 		s_akm->delay[i] = -1;
 
 	if (s_akm->irq == 0) {
