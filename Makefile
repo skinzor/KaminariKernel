@@ -248,10 +248,36 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCC       = ccache gcc
+HOSTCXX      = ccache g++
+ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -Og -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -Os -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_DONT_OPTIMIZE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -O0 -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -O1 -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -O2 -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -O3 -fno-tree-vectorize
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCXXFLAGS = -Ofast -fno-tree-vectorize
+endif
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -354,7 +380,7 @@ KERNEL_FLAGS	= -marm -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
                   -mvectorize-with-neon-quad -fgcse-after-reload -fgcse-sm \
                   -fgcse-las -ftree-loop-im -ftree-loop-ivcanon -fivopts \
                   -ftree-vectorize -fmodulo-sched -ffast-math \
-                  -funsafe-math-optimizations -std=gnu89
+                  -funsafe-math-optimizations -std=gnu99
 
 # Try to always use GNU ld
 ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
@@ -576,10 +602,26 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
+ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
+KBUILD_CFLAGS	+= -Og $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
-else
-KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions 
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
+ifdef CONFIG_CC_DONT_OPTIMIZE
+KBUILD_CFLAGS	+= -O0 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+KBUILD_CFLAGS	+= -O1 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+endif
+ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
