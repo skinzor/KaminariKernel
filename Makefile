@@ -253,28 +253,22 @@ HOSTCXX      = ccache g++
 ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -Og -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -Os -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_DONT_OPTIMIZE
+else ifdef CONFIG_CC_DONT_OPTIMIZE
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -O0 -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O1
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -O1 -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O2
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -O2 -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O3
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -O3 -fno-tree-vectorize
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+else ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
 HOSTCXXFLAGS = -Ofast -fno-tree-vectorize
 endif
@@ -604,23 +598,17 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
 KBUILD_CFLAGS	+= -Og $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_DONT_OPTIMIZE
+else ifdef CONFIG_CC_DONT_OPTIMIZE
 KBUILD_CFLAGS	+= -O0 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O1
 KBUILD_CFLAGS	+= -O1 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O2
 KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O3
 KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
-endif
-ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+else ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
 KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
 endif
 
