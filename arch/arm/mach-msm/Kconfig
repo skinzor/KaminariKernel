@@ -3138,28 +3138,30 @@ config MMI_DEVICE_DTBS
 config MMI_TITAN_DTB
 	depends on ARCH_MSM8226
 	default n
-	bool "Motorola Titan Device DTBs"
+	bool "Motorola Titan/Thea Device DTBs"
 	help
-	  Only include Motorola Titan specific DTBs to limit the number that
+	  Only include Motorola Titan & Thea specific DTBs to limit the number that
 	  get built during kernel compilation.
 
 	  Titan is a Motorola device that uses MSM8226 chipset, which uses the
 	  MSM8226 defconfig.  Due to its many revisions, adding all of the device
 	  trees will consume at least 1MB of space.
+	  Thea uses the MSM8926 chipset, which also uses the MSM8226 defconfig.
 
 	  If unsure, say 'n'.
 
-config MMI_PEREGRINE_DTB
+config MMI_FALCON_DTB
 	depends on ARCH_MSM8226
 	default n
-	bool "Motorola Peregrine Device DTBs"
+	bool "Motorola Falcon/Peregrine Device DTBs"
 	help
-	  Only include Motorola Peregrine specific DTBs to limit the number that
+	  Only include Motorola Falcon & Peregrine specific DTBs to limit the number that
 	  get built during kernel compilation.
 
-	  Peregrine is a Motorola device that uses MSM8926 chipset, which uses the
+	  Falcon is a Motorola device that uses MSM8226 chipset, which uses the
 	  MSM8226 defconfig.  Due to its many revisions, adding all of the device
 	  trees will consume at least 1MB of space.
+	  Peregrine uses the MSM8926 chipset, which also uses the MSM8226 defconfig.
 
 	  If unsure, say 'n'.
 
