@@ -956,6 +956,14 @@ source "usr/Kconfig"
 
 endif
 
+config CC_DONT_OPTIMIZE
+	bool "Don't use optimization"
+	help
+	  Enabling this option will not pass any "-Ox" flag to gcc
+	  resulting in a regular sized, non-optimized kernel.
+
+	  If unsure, say Y.
+
 config CC_OPTIMIZE_FOR_DEBUGGING
 	bool "Optimize for debugging"
 	help
@@ -972,7 +980,7 @@ config CC_OPTIMIZE_FOR_SIZE
 
 	  If unsure, say Y.
 
-config CC_DONT_OPTIMIZE
+config CC_OPTIMIZE_LVL_ZERO
 	bool "Optimization level -O0"
 	help
 	  Enabling this option will pass "-O0" instead of "-O2" to gcc
