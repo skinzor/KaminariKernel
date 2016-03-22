@@ -113,31 +113,31 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../zip_falcon ]; then 
-	mkdir ../zip_falcon;
-	cp -rf ../Custom_AnyKernel/* ../zip_falcon;
+if [ ! -d ../zip_falcon_oc ]; then 
+	mkdir ../zip_falcon_oc;
+	cp -rf ../Custom_AnyKernel/* ../zip_falcon_oc;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../zip_falcon/modules ]; then mkdir ../zip_falcon/modules; fi;
+if [ ! -d ../zip_falcon_oc/modules ]; then mkdir ../zip_falcon_oc/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../release_falcon ]; then mkdir ../release_falcon; fi;
+if [ ! -d ../release_falcon_oc ]; then mkdir ../release_falcon_oc; fi;
 
 # Remove previous modules
-if [ -d ../zip_falcon/modules ]; then rm -rf ../zip_falcon/modules/*; fi;
+if [ -d ../zip_falcon_oc/modules ]; then rm -rf ../zip_falcon_oc/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../zip_falcon/modules/pronto ]; then mkdir ../zip_falcon/modules/pronto; fi;
+if [ ! -d ../zip_falcon_oc/modules/pronto ]; then mkdir ../zip_falcon_oc/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../zip_falcon/modules/ \;
-mv ../zip_falcon/modules/wlan.ko ../zip_falcon/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../zip_falcon_oc/modules/ \;
+mv ../zip_falcon_oc/modules/wlan.ko ../zip_falcon_oc/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../zip_falcon/;
-ls -l ../zip_falcon/zImage-dtb;
-cd ../zip_falcon;
+cp -f arch/arm/boot/zImage-dtb ../zip_falcon_oc/;
+ls -l ../zip_falcon_oc/zImage-dtb;
+cd ../zip_falcon_oc;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
@@ -154,4 +154,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../release_falcon;
+mv $zipname.zip ../release_falcon_oc;

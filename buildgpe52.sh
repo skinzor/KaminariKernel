@@ -113,31 +113,31 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../zip_falcon_gpe ]; then 
-	mkdir ../zip_falcon_gpe;
-	cp -rf ../Custom_AnyKernel/* ../zip_falcon_gpe;
+if [ ! -d ../zip_falcon_oc_gpe ]; then 
+	mkdir ../zip_falcon_oc_gpe;
+	cp -rf ../Custom_AnyKernel/* ../zip_falcon_oc_gpe;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../zip_falcon_gpe/modules ]; then mkdir ../zip_falcon_gpe/modules; fi;
+if [ ! -d ../zip_falcon_oc_gpe/modules ]; then mkdir ../zip_falcon_oc_gpe/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../release_falcon_gpe ]; then mkdir ../release_falcon_gpe; fi;
+if [ ! -d ../release_falcon_oc_gpe ]; then mkdir ../release_falcon_oc_gpe; fi;
 
 # Remove previous modules
-if [ -d ../zip_falcon_gpe/modules ]; then rm -rf ../zip_falcon_gpe/modules/*; fi;
+if [ -d ../zip_falcon_oc_gpe/modules ]; then rm -rf ../zip_falcon_oc_gpe/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../zip_falcon_gpe/modules/pronto ]; then mkdir ../zip_falcon_gpe/modules/pronto; fi;
+if [ ! -d ../zip_falcon_oc_gpe/modules/pronto ]; then mkdir ../zip_falcon_oc_gpe/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../zip_falcon_gpe/modules/ \;
-mv ../zip_falcon_gpe/modules/wlan.ko ../zip_falcon_gpe/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../zip_falcon_oc_gpe/modules/ \;
+mv ../zip_falcon_oc_gpe/modules/wlan.ko ../zip_falcon_oc_gpe/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../zip_falcon_gpe/;
-ls -l ../zip_falcon_gpe/zImage-dtb;
-cd ../zip_falcon_gpe;
+cp -f arch/arm/boot/zImage-dtb ../zip_falcon_oc_gpe/;
+ls -l ../zip_falcon_oc_gpe/zImage-dtb;
+cd ../zip_falcon_oc_gpe;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
@@ -154,4 +154,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../release_falcon_gpe;
+mv $zipname.zip ../release_falcon_oc_gpe;
