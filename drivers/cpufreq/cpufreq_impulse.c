@@ -30,11 +30,7 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <asm/cputime.h>
-
-#ifdef CONFIG_STATE_NOTIFIER
 #include <linux/state_notifier.h>
-#endif
-
 #include <linux/tick.h>
 #include <linux/moduleparam.h>
 #include <linux/jiffies.h>
