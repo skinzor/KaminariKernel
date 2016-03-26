@@ -34,6 +34,7 @@
 #include <linux/tick.h>
 #include <linux/moduleparam.h>
 #include <linux/jiffies.h>
+#include <linux/state_notifier.h>
 #include <linux/input.h>
 #include <linux/kernel_stat.h>
 

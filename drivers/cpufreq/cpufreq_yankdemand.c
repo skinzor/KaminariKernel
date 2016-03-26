@@ -17,6 +17,7 @@
 #include <linux/cpufreq.h>
 #include <linux/cpu.h>
 #include <linux/jiffies.h>
+#include <linux/state_notifier.h>
 #include <linux/kernel_stat.h>
 #include <linux/mutex.h>
 #include <linux/hrtimer.h>

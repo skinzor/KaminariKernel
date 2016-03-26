@@ -28,6 +28,7 @@
 #include <linux/workqueue.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
+#include <linux/state_notifier.h>
 #include <asm/cputime.h>
 
 #define DEFAULT_HISPEED_FREQ		1190400
