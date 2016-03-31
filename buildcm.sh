@@ -87,7 +87,7 @@ echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`";
 [ $numjobs != 0 ] && echo -e "Number of parallel jobs: $numjobs";
 			
 # Build the kernel
-make falcon_defconfig;
+make cmfalcon_defconfig;
 
 if [ $numjobs ] && [ $numjobs != 0 ]; then
 	make -j$numjobs;
