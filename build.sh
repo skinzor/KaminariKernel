@@ -11,16 +11,6 @@ export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
-# Clone the custom anykernel repo
-if [ ! -d ../Custom_AnyKernel ]; then
-	echo -e "Custom AnyKernel not detected. Cloning git repository...\n";	
-	git clone -q -b $device https://github.com/Kamin4ri/Custom_AnyKernel ../Custom_AnyKernel;
-else
-	cd ../Custom_AnyKernel;
-	git checkout -q falcon;
-	cd ../$this;
-fi;
-
 # Output some basic info
 echo -e "Building KaminariKernel...";
 
@@ -113,31 +103,31 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../zip_falcon ]; then 
-	mkdir ../zip_falcon;
-	cp -rf ../Custom_AnyKernel/* ../zip_falcon;
+if [ ! -d ../Zip_Stock ]; then 
+	mkdir ../Zip_Stock;
+	cp -rf ../Custom_AnyKernel/* ../Zip_Stock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../zip_falcon/modules ]; then mkdir ../zip_falcon/modules; fi;
+if [ ! -d ../Zip_Stock/modules ]; then mkdir ../Zip_Stock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../release_falcon ]; then mkdir ../release_falcon; fi;
+if [ ! -d ../Out_Stock ]; then mkdir ../Out_Stock; fi;
 
 # Remove previous modules
-if [ -d ../zip_falcon/modules ]; then rm -rf ../zip_falcon/modules/*; fi;
+if [ -d ../Zip_Stock/modules ]; then rm -rf ../Zip_Stock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../zip_falcon/modules/pronto ]; then mkdir ../zip_falcon/modules/pronto; fi;
+if [ ! -d ../Zip_Stock/modules/pronto ]; then mkdir ../Zip_Stock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../zip_falcon/modules/ \;
-mv ../zip_falcon/modules/wlan.ko ../zip_falcon/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_Stock/modules/ \;
+mv ../Zip_Stock/modules/wlan.ko ../Zip_Stock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../zip_falcon/;
-ls -l ../zip_falcon/zImage-dtb;
-cd ../zip_falcon;
+cp -f arch/arm/boot/zImage-dtb ../Zip_Stock/;
+ls -l ../Zip_Stock/zImage-dtb;
+cd ../Zip_Stock;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
@@ -154,4 +144,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../release_falcon;
+mv $zipname.zip ../Out_Stock;
