@@ -251,28 +251,28 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 HOSTCC       = ccache gcc
 HOSTCXX      = ccache g++
 ifdef CONFIG_CC_DONT_OPTIMIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -Og -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -Os -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_LVL_ZERO
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -O0 -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_LVL_O1
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -O1 -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_LVL_O2
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -O2 -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_LVL_O3
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -O3 -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fno-tree-vectorize -fomit-frame-pointer -std=gnu99
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -Ofast -fno-tree-vectorize
 endif
 
@@ -377,7 +377,7 @@ KERNEL_FLAGS	= -marm -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
                   -mvectorize-with-neon-quad -fgcse-after-reload -fgcse-sm \
                   -fgcse-las -ftree-loop-im -ftree-loop-ivcanon -fivopts \
                   -ftree-vectorize -fmodulo-sched -ffast-math \
-                  -funsafe-math-optimizations -std=gnu99
+                  -funsafe-math-optimizations -std=gnu89
 
 # Try to always use GNU ld
 ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
