@@ -6,7 +6,7 @@ numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
-export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
+export PATH=$HOME/Toolchains/Linaro-5.2-CortexA7/bin:$PATH;
 export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
@@ -140,7 +140,7 @@ fi;
 if [ $version ] && [ "$version" != "" ]; then
 	echo -e "Version: $version" > version.txt && echo -e "Build date and time: $builddate_full" > builddate.txt;
 else
-	[ -e version.txt ] && rm version.txt;
+	[ -e version.txt ] && rm version.txt;	
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
