@@ -621,7 +621,8 @@ static int create_device_attributes (struct device* dev, struct device_attribute
 }
 
 static void remove_device_attributes (struct device* dev, struct device_attribute* attrs) {
-	for (int i = 0 ; NULL != attrs[i].attr.name ; ++i)
+	int i;
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		device_remove_file(dev, &attrs[i]);
 }
 
@@ -647,7 +648,8 @@ static int create_device_binary_attributes (struct kobject* kobj, struct bin_att
 }
 
 static void remove_device_binary_attributes (struct kobject* kobj, struct bin_attribute* attrs) {
-	for (int i = 0 ; NULL != attrs[i].attr.name ; ++i)
+	int i;
+	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		sysfs_remove_bin_file(kobj, &attrs[i]);
 }
 
