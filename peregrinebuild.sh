@@ -6,7 +6,7 @@ numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
-export PATH=$HOME/Toolchains/Linaro-5.2-A7/bin:$PATH;
+export PATH=$HOME/Toolchains/GNU-5.3-CortexA7/bin:$PATH;
 export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
@@ -103,30 +103,31 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_KaminariMM_Peregrine ]; then 
-	mkdir ../Zip_KaminariMM_Peregrine;
+if [ ! -d ../Zip_CustomMM_Peregrine ]; then 
+	mkdir ../Zip_CustomMM_Peregrine;
+	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Peregrine;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_KaminariMM_Peregrine/modules ]; then mkdir ../Zip_KaminariMM_Peregrine/modules; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine/modules ]; then mkdir ../Zip_CustomMM_Peregrine/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Release_KaminariMM_Peregrine ]; then mkdir ../Release_KaminariMM_Peregrine; fi;
+if [ ! -d ../Out_CustomMM_Peregrine ]; then mkdir ../Out_CustomMM_Peregrine; fi;
 
 # Remove previous modules
-if [ -d ../Zip_KaminariMM_Peregrine/modules ]; then rm -rf ../Zip_KaminariMM_Peregrine/modules/*; fi;
+if [ -d ../Zip_CustomMM_Peregrine/modules ]; then rm -rf ../Zip_CustomMM_Peregrine/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_KaminariMM_Peregrine/modules/pronto ]; then mkdir ../Zip_KaminariMM_Peregrine/modules/pronto; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine/modules/pronto ]; then mkdir ../Zip_CustomMM_Peregrine/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_KaminariMM_Peregrine/modules/ \;
-mv ../Zip_KaminariMM_Peregrine/modules/wlan.ko ../Zip_KaminariMM_Peregrine/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Peregrine/modules/ \;
+mv ../Zip_CustomMM_Peregrine/modules/wlan.ko ../Zip_CustomMM_Peregrine/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_KaminariMM_Peregrine/;
-ls -l ../Zip_KaminariMM_Peregrine/zImage-dtb;
-cd ../Zip_KaminariMM_Peregrine;
+cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Peregrine/;
+ls -l ../Zip_CustomMM_Peregrine/zImage-dtb;
+cd ../Zip_CustomMM_Peregrine;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
@@ -143,4 +144,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Release_KaminariMM_Peregrine;
+mv $zipname.zip ../Out_CustomMM_Peregrine;

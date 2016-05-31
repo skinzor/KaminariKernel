@@ -6,7 +6,7 @@ numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
-export PATH=$HOME/Toolchains/Linaro-5.2-A7/bin:$PATH;
+export PATH=$HOME/Toolchains/GNU-5.3-CortexA7/bin:$PATH;
 export ARCH=arm;
 export SUBARCH=arm;
 export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
@@ -103,36 +103,37 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_KaminariMM_Falcon ]; then 
-	mkdir ../Zip_KaminariMM_Falcon;
+if [ ! -d ../Zip_CustomMM_Falcon ]; then 
+	mkdir ../Zip_CustomMM_Falcon;
+	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Falcon;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_KaminariMM_Falcon/modules ]; then mkdir ../Zip_KaminariMM_Falcon/modules; fi;
+if [ ! -d ../Zip_CustomMM_Falcon/modules ]; then mkdir ../Zip_CustomMM_Falcon/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Release_KaminariMM_Falcon ]; then mkdir ../Release_KaminariMM_Falcon; fi;
+if [ ! -d ../Out_CustomMM_Falcon ]; then mkdir ../Out_CustomMM_Falcon; fi;
 
 # Remove previous modules
-if [ -d ../Zip_KaminariMM_Falcon/modules ]; then rm -rf ../Zip_KaminariMM_Falcon/modules/*; fi;
+if [ -d ../Zip_CustomMM_Falcon/modules ]; then rm -rf ../Zip_CustomMM_Falcon/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_KaminariMM_Falcon/modules/pronto ]; then mkdir ../Zip_KaminariMM_Falcon/modules/pronto; fi;
+if [ ! -d ../Zip_CustomMM_Falcon/modules/pronto ]; then mkdir ../Zip_CustomMM_Falcon/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_KaminariMM_Falcon/modules/ \;
-mv ../Zip_KaminariMM_Falcon/modules/wlan.ko ../Zip_KaminariMM_Falcon/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Falcon/modules/ \;
+mv ../Zip_CustomMM_Falcon/modules/wlan.ko ../Zip_CustomMM_Falcon/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_KaminariMM_Falcon/;
-ls -l ../Zip_KaminariMM_Falcon/zImage-dtb;
-cd ../Zip_KaminariMM_Falcon;
+cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Falcon/;
+ls -l ../Zip_CustomMM_Falcon/zImage-dtb;
+cd ../Zip_CustomMM_Falcon;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
-	zipname="Kaminari_v"$version"_Falcon";
+	zipname="KaminariMM_v"$version"_Falcon";
 else
-	zipname="Kaminari_"$builddate"_Falcon";
+	zipname="KaminariMM_"$builddate"_Falcon";
 fi;
 
 # Make the zip
@@ -143,4 +144,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Release_KaminariMM_Falcon;
+mv $zipname.zip ../Out_CustomMM_Falcon;
