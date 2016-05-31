@@ -103,37 +103,37 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Falcon ]; then 
-	mkdir ../Zip_CustomMM_Falcon;
-	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Falcon;
+if [ ! -d ../Zip_CustomMM_Falcon_Overclock ]; then 
+	mkdir ../Zip_CustomMM_Falcon_Overclock;
+	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Falcon_Overclock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Falcon/modules ]; then mkdir ../Zip_CustomMM_Falcon/modules; fi;
+if [ ! -d ../Zip_CustomMM_Falcon_Overclock/modules ]; then mkdir ../Zip_CustomMM_Falcon_Overclock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Out_CustomMM_Falcon ]; then mkdir ../Out_CustomMM_Falcon; fi;
+if [ ! -d ../Out_CustomMM_Falcon_Overclock ]; then mkdir ../Out_CustomMM_Falcon_Overclock; fi;
 
 # Remove previous modules
-if [ -d ../Zip_CustomMM_Falcon/modules ]; then rm -rf ../Zip_CustomMM_Falcon/modules/*; fi;
+if [ -d ../Zip_CustomMM_Falcon_Overclock/modules ]; then rm -rf ../Zip_CustomMM_Falcon_Overclock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_CustomMM_Falcon/modules/pronto ]; then mkdir ../Zip_CustomMM_Falcon/modules/pronto; fi;
+if [ ! -d ../Zip_CustomMM_Falcon_Overclock/modules/pronto ]; then mkdir ../Zip_CustomMM_Falcon_Overclock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Falcon/modules/ \;
-mv ../Zip_CustomMM_Falcon/modules/wlan.ko ../Zip_CustomMM_Falcon/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Falcon_Overclock/modules/ \;
+mv ../Zip_CustomMM_Falcon_Overclock/modules/wlan.ko ../Zip_CustomMM_Falcon_Overclock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Falcon/;
-ls -l ../Zip_CustomMM_Falcon/zImage-dtb;
-cd ../Zip_CustomMM_Falcon;
+cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Falcon_Overclock/;
+ls -l ../Zip_CustomMM_Falcon_Overclock/zImage-dtb;
+cd ../Zip_CustomMM_Falcon_Overclock;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
-	zipname="KaminariMM_v"$version"_Falcon";
+	zipname="KaminariMM_v"$version"_Falcon_Overclock";
 else
-	zipname="KaminariMM_"$builddate"_Falcon";
+	zipname="KaminariMM_"$builddate"_Falcon_Overclock";
 fi;
 
 # Make the zip
@@ -144,4 +144,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_CustomMM_Falcon;
+mv $zipname.zip ../Out_CustomMM_Falcon_Overclock;

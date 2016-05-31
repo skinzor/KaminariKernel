@@ -103,37 +103,37 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Peregrine ]; then 
-	mkdir ../Zip_CustomMM_Peregrine;
-	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Peregrine;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock ]; then 
+	mkdir ../Zip_CustomMM_Peregrine_Overclock;
+	cp -rf ../Custom_AnyKernel/* ../Zip_CustomMM_Peregrine_Overclock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Peregrine/modules ]; then mkdir ../Zip_CustomMM_Peregrine/modules; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock/modules ]; then mkdir ../Zip_CustomMM_Peregrine_Overclock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Out_CustomMM_Peregrine ]; then mkdir ../Out_CustomMM_Peregrine; fi;
+if [ ! -d ../Out_CustomMM_Peregrine_Overclock ]; then mkdir ../Out_CustomMM_Peregrine_Overclock; fi;
 
 # Remove previous modules
-if [ -d ../Zip_CustomMM_Peregrine/modules ]; then rm -rf ../Zip_CustomMM_Peregrine/modules/*; fi;
+if [ -d ../Zip_CustomMM_Peregrine_Overclock/modules ]; then rm -rf ../Zip_CustomMM_Peregrine_Overclock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_CustomMM_Peregrine/modules/pronto ]; then mkdir ../Zip_CustomMM_Peregrine/modules/pronto; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock/modules/pronto ]; then mkdir ../Zip_CustomMM_Peregrine_Overclock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Peregrine/modules/ \;
-mv ../Zip_CustomMM_Peregrine/modules/wlan.ko ../Zip_CustomMM_Peregrine/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Peregrine_Overclock/modules/ \;
+mv ../Zip_CustomMM_Peregrine_Overclock/modules/wlan.ko ../Zip_CustomMM_Peregrine_Overclock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Peregrine/;
-ls -l ../Zip_CustomMM_Peregrine/zImage-dtb;
-cd ../Zip_CustomMM_Peregrine;
+cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Peregrine_Overclock/;
+ls -l ../Zip_CustomMM_Peregrine_Overclock/zImage-dtb;
+cd ../Zip_CustomMM_Peregrine_Overclock;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
-	zipname="Kaminari_v"$version"_Peregrine";
+	zipname="Kaminari_v"$version"_Peregrine_Overclock";
 else
-	zipname="Kaminari_"$builddate"_Peregrine";
+	zipname="Kaminari_"$builddate"_Peregrine_Overclock";
 fi;
 
 # Make the zip
@@ -144,4 +144,4 @@ else
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_CustomMM_Peregrine;
+mv $zipname.zip ../Out_CustomMM_Peregrine_Overclock;
