@@ -1151,7 +1151,7 @@ static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 				kthread_stop(boost_task);
 			sysfs_remove_group(cpufreq_global_kobject, &smartmax_attr_group);
 			input_unregister_handler(&dbs_input_handler);
-			lcd_unregister_client(&smnotif);
+			state_unregister_client(&smnotif);
 		}
 
 		mutex_unlock(&dbs_mutex);
