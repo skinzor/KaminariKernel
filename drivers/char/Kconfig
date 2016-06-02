@@ -4,6 +4,11 @@
 
 menu "Character devices"
 
+config FRANDOM
+	bool "Frandom character device"
+	default y
+	help
+
 config MISC_DYNAMIC_MINORS
 	int "misc device dynamic minors"
 	default "96"
