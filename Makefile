@@ -251,29 +251,29 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 HOSTCC       = ccache gcc
 HOSTCXX      = ccache g++
 ifdef CONFIG_CC_DONT_OPTIMIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -fgcse-las
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Og -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -Og -fgcse-las
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -Og -fno-tree-vectorize
 else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fgcse-las -fomit-frame-pointer
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -Os -fno-tree-vectorize
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -O0 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O1 -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -O1 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -O2 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -O3 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_MAX_LEVEL
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fgcse-las -fomit-frame-pointer
-HOSTCXXFLAGS = -Ofast -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZE_LVL_ZERO
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O0 -fno-tree-vectorize
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O1 -fno-tree-vectorize
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2 -fno-tree-vectorize
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O3 -fno-tree-vectorize
+else ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fno-tree-vectorize -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -Ofast -fno-tree-vectorize
 endif
 
 # Decide whether to build built-in, modular, or both.
@@ -373,6 +373,12 @@ KALLSYMS	= scripts/kallsyms
 PERL		= perl
 CHECK		= sparse
 
+KERNEL_FLAGS	= -marm -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
+                  -mvectorize-with-neon-quad -fgcse-after-reload -fgcse-sm \
+                  -fgcse-las -ftree-loop-im -ftree-loop-ivcanon -fivopts \
+                  -ftree-vectorize -fmodulo-sched -ffast-math \
+                  -funsafe-math-optimizations -std=gnu89
+
 # Try to always use GNU ld
 ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
 LD		= $(CROSS_COMPILE)ld.bfd
@@ -380,12 +386,13 @@ endif
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   =
-AFLAGS_MODULE   =
+CFLAGS_MODULE   = -DMODULE -fno-pic $(KERNEL_FLAGS)
+AFLAGS_MODULE   = -DMODULE -fno-pic $(KERNEL_FLAGS)
 LDFLAGS_MODULE  = --strip-debug
-CFLAGS_KERNEL	=
+CFLAGS_KERNEL	= $(KERNEL_FLAGS)
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
+GRAPHITE_FLAGS  = -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block -floop-flatten
 
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
@@ -397,18 +404,12 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KAMINARI_FLAGS  := -pipe -marm -munaligned-access -mtune=cortex-a7 -mcpu=cortex-a7 -march=armv7-a -mfpu=neon-vfpv4 \
-		   -mvectorize-with-neon-quad -fmodulo-sched -fmodulo-sched-allow-regmoves \
-		   -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
-		   -fno-pic -Wno-unused -Wno-array-bounds -Wno-maybe-uninitialized -mno-android -fno-aggressive-loop-optimizations \
-		   --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048 -std=gnu89
-
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security -Wno-sizeof-pointer-memaccess \
 		   -fno-delete-null-pointer-checks -fno-pic \
-                   $(KAMINARI_FLAGS)
+                   $(KERNEL_FLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -599,21 +600,21 @@ endif # $(dot-config)
 all: vmlinux
 
 ifdef CONFIG_CC_DONT_OPTIMIZE
-KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
 else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
-KBUILD_CFLAGS	+= -Og $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -Og $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
 else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
-KBUILD_CFLAGS	+= -O0 $(call cc-disable-warning,maybe-uninitialized,)
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
-KBUILD_CFLAGS	+= -O1 $(call cc-disable-warning,maybe-uninitialized,)
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
-KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,)
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
-KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,)
-else ifdef CONFIG_CC_OPTIMIZATION_MAX_LEVEL
-KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+else ifdef CONFIG_CC_OPTIMIZE_LVL_ZERO
+KBUILD_CFLAGS	+= -O0 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O1
+KBUILD_CFLAGS	+= -O1 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O2
+KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+else ifdef CONFIG_CC_OPTIMIZE_LVL_O3
+KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
+else ifdef CONFIG_CC_OPTIMIZE_LVL_OFAST
+KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,) -g0 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -Wno-array-bounds -Wno-unused-variable -fivopts -fno-inline-functions
 endif
 
 # conserve stack if available
@@ -684,6 +685,9 @@ KBUILD_CFLAGS += $(call cc-disable-warning, pointer-sign)
 
 # disable invalid "can't wrap" optimizations for signed / pointers
 KBUILD_CFLAGS	+= $(call cc-option,-fno-strict-overflow)
+
+# conserve stack if available
+KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
 
 # use the deterministic mode of AR if available
 KBUILD_ARFLAGS := $(call ar-option,D)
