@@ -6,10 +6,10 @@ numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
-export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
+export PATH=$HOME/Toolchains/Linaro-5.3-Generic/bin:$PATH;
 export ARCH=arm;
 export SUBARCH=arm;
-export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
+export CROSS_COMPILE=arm-linux-gnueabihf-;
 
 # Output some basic info
 echo -e "Building KaminariKernel...";
@@ -103,45 +103,45 @@ builddate=`date +%Y%m%d.%H%M%S`;
 builddate_full=`date +"%d %b %Y | %H:%M:%S %Z"`;
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_Stock_Overclock ]; then 
-	mkdir ../Zip_Stock_Overclock;
-	cp -rf ../Custom_AnyKernel/* ../Zip_Stock_Overclock;
+if [ ! -d ../Zip_Stock ]; then 
+	mkdir ../Zip_Stock;
+	cp -rf ../Custom_AnyKernel/* ../Zip_Stock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_Stock_Overclock/modules ]; then mkdir ../Zip_Stock_Overclock/modules; fi;
+if [ ! -d ../Zip_Stock/modules ]; then mkdir ../Zip_Stock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Out_Stock_Overclock ]; then mkdir ../Out_Stock_Overclock; fi;
+if [ ! -d ../Out_Stock ]; then mkdir ../Out_Stock; fi;
 
 # Remove previous modules
-if [ -d ../Zip_Stock_Overclock/modules ]; then rm -rf ../Zip_Stock_Overclock/modules/*; fi;
+if [ -d ../Zip_Stock/modules ]; then rm -rf ../Zip_Stock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_Stock_Overclock/modules/pronto ]; then mkdir ../Zip_Stock_Overclock/modules/pronto; fi;
+if [ ! -d ../Zip_Stock/modules/pronto ]; then mkdir ../Zip_Stock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_Stock_Overclock/modules/ \;
-mv ../Zip_Stock_Overclock/modules/wlan.ko ../Zip_Stock_Overclock/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_Stock/modules/ \;
+mv ../Zip_Stock/modules/wlan.ko ../Zip_Stock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_Stock_Overclock/;
-ls -l ../Zip_Stock_Overclock/zImage-dtb;
-cd ../Zip_Stock_Overclock;
+cp -f arch/arm/boot/zImage-dtb ../Zip_Stock/;
+ls -l ../Zip_Stock/zImage-dtb;
+cd ../Zip_Stock;
 
 # Set zip name
 if [ $version ] && [ "$version" != "" ]; then
-	zipname="Kaminari_v"$version"_Falcon_Overclock";
+	zipname="Kaminari_v"$version"_Falcon";
 else
-	zipname="Kaminari_"$builddate"_Falcon_Overclock";
+	zipname="Kaminari_"$builddate"_Falcon";
 fi;
 
 # Make the zip
 if [ $version ] && [ "$version" != "" ]; then
 	echo -e "Version: $version" > version.txt && echo -e "Build date and time: $builddate_full" > builddate.txt;
 else
-	[ -e version.txt ] && rm version.txt;
+	[ -e version.txt ] && rm version.txt;	
 	echo -e "Build date and time: $builddate_full" > builddate.txt;
 fi;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_Stock_Overclock;
+mv $zipname.zip ../Out_Stock;
