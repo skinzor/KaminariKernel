@@ -980,7 +980,7 @@ config CC_OPTIMIZE_FOR_SIZE
 
 	  If unsure, say Y.
 
-config CC_OPTIMIZE_LVL_ZERO
+config CC_OPTIMIZATION_LEVEL_ZERO
 	bool "Optimization level -O0"
 	help
 	  Enabling this option will pass "-O0" instead of "-O2" to gcc
@@ -988,7 +988,7 @@ config CC_OPTIMIZE_LVL_ZERO
 
 	  If unsure, say Y.
 
-config CC_OPTIMIZE_LVL_O1
+config CC_OPTIMIZATION_LEVEL_ONE
 	bool "Optimization level -O1"
 	help
 	  Enabling this option will pass "-O1" instead of "-O2" to gcc
@@ -996,7 +996,7 @@ config CC_OPTIMIZE_LVL_O1
 
 	  If unsure, say Y.
 
-config CC_OPTIMIZE_LVL_O2
+config CC_OPTIMIZATION_LEVEL_TWO
 	bool "Optimization level -O2"
 	help
 	  Enabling this option will pass "-O2" to gcc
@@ -1004,7 +1004,7 @@ config CC_OPTIMIZE_LVL_O2
 
 	  If unsure, say Y.
 
-config CC_OPTIMIZE_LVL_O3
+config CC_OPTIMIZATION_LEVEL_THREE
 	bool "Optimization level -O3"
 	help
 	  Enabling this option will pass "-O3" instead of "-O2" to gcc
@@ -1012,7 +1012,7 @@ config CC_OPTIMIZE_LVL_O3
 
 	  If unsure, say Y.
 
-config CC_OPTIMIZE_LVL_OFAST
+config CC_OPTIMIZATION_MAX
 	bool "Optimization level -Ofast"
 	help
 	  Enabling this option will pass "-Ofast" instead of "-O2" to gcc
