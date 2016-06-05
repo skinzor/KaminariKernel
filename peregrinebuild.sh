@@ -6,10 +6,10 @@ numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
-export PATH=$HOME/Toolchains/GNU-5.3-CortexA7/bin:$PATH;
+export PATH=$HOME/Toolchains/Linaro-5.3-Generic/bin:$PATH;
 export ARCH=arm;
 export SUBARCH=arm;
-export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
+export CROSS_COMPILE=arm-linux-gnueabihf-;
 
 # Output some basic info
 echo -e "Building KaminariKernel...";
