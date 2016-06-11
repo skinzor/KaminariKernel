@@ -126,7 +126,6 @@ void __init msm8226_add_drivers(void)
 	else
 		msm_clock_init(&msm8226_clock_init_data);
 	tsens_tm_init_driver();
-	msm_thermal_device_init();
 }
 
 void __init msm8226_init(void)
