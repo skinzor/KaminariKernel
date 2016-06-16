@@ -3,7 +3,7 @@
 # Variables
 sequence=`seq 1 100`;
 numjobs=0;
-this="ThunarKernel";
+this="KaminariKernel";
 
 # Set up the cross-compiler
 export PATH=$HOME/Toolchains/Linaro-5.3-Generic/bin:$PATH;
@@ -15,7 +15,7 @@ export CROSS_COMPILE=arm-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building Thunar Kernel...";
+echo -e "Building KaminariKernel...";
 
 while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
 	case $clean in
@@ -36,19 +36,19 @@ while read -p "Do you wanna specify a release/version number? (Just press enter 
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
 				echo -e "Release number: $rel\n";
-				export LOCALVERSION="-Thunar-$rel";
+				export LOCALVERSION="-Kaminari-$rel";
 				version=$rel;
 			fi;
 		done;
 	elif [[ `echo $rel | gawk --re-interval "/^v/"` ]]; then
 		echo -e "Version number: $rel\n";
-		export LOCALVERSION="-Thunar-$rel";
+		export LOCALVERSION="-Kaminari-$rel";
 		version=$rel;
 	else
 		case $rel in
 			"" | " " )
 				echo -e "No release number specified. Assuming test/nightly build.\n";
-				export LOCALVERSION="-Thunar-Testing";
+				export LOCALVERSION="-Kaminari-Testing";
 				version=`date "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
@@ -118,7 +118,7 @@ ls -l ../Zip_Stock_Falcon/zImage-dtb;
 cd ../Zip_Stock_Falcon;
 
 # Set zip name
-zipname="Thunar_"$version"_Falcon";
+zipname="Kaminari_"$version"_Falcon";
 
 # Make the zip
 echo -e "Version: $version" > version.txt;

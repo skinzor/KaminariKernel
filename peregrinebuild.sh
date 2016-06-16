@@ -3,7 +3,7 @@
 # Variables
 sequence=`seq 1 100`;
 numjobs=0;
-this="ThunarKernel";
+this="KaminariKernel";
 
 # Set up the cross-compiler
 export PATH=$HOME/Toolchains/Linaro-5.3-Generic/bin:$PATH;
@@ -15,15 +15,16 @@ export CROSS_COMPILE=arm-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building Thunar Kernel...";
+echo -e "Building KaminariKernel...";
 
 while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
 	case $clean in
 		"y" | "Y" | "yes" | "Yes")
 			echo -e "Cleaning everything...\n";
-			make --quiet mrproper && echo -e "Done!";
+			make --quiet mrproper && echo -e "Done!\n";
 			break;;
-		"n" | "N" | "no" | "No")
+		"n" | "N" | "no" | "No" | "" | " ")
+			echo -e "Not cleaning anything.\n";
 			break;;
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
@@ -31,40 +32,41 @@ while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " cl
 done;
 
 while read -p "Do you wanna specify a release/version number? (Just press enter if you don't.) " rel; do
-	if [ `echo $rel | gawk --re-interval "/^R/"` != "" ]; then
+	if [[ `echo $rel | gawk --re-interval "/^R/"` != "" ]]; then
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
-				echo -e "Release number: $rel";
-				export LOCALVERSION="-Thunar-$rel";
+				echo -e "Release number: $rel\n";
+				export LOCALVERSION="-Kaminari-$rel";
 				version=$rel;
 			fi;
 		done;
-	elif [ `echo $rel | gawk --re-interval "/^v/"` ]; then
-		echo -e "Version number: $rel";
-		export LOCALVERSION="-Thunar-$rel";
+	elif [[ `echo $rel | gawk --re-interval "/^v/"` ]]; then
+		echo -e "Version number: $rel\n";
+		export LOCALVERSION="-Kaminari-$rel";
 		version=$rel;
 	else
 		case $rel in
 			"" | " " )
-				echo -e "No release number specified. Assuming test/nightly build.";
-				export LOCALVERSION="-Thunar-Testing";
+				echo -e "No release number specified. Assuming test/nightly build.\n";
+				export LOCALVERSION="-Kaminari-Testing";
 				version=`date "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
 				break;;
 		esac;
 	fi;
+	break;
 done;
 
 while read -p "How many parallel jobs do you wanna use? (Default is 4.) " numjobs; do
 	for i in $sequence; do
-		if [ $numjobs = $i ]; then
-			echo -e "Number of custom jobs: $numjobs";
+		if [[ $numjobs = $i ]]; then
+			echo -e "Number of custom jobs: $numjobs\n";
 			jobs=$numjobs;
 		else
 			case $numjobs in
 				"" | " ")
-					echo -e "No custom number of jobs specified. Using default number.";
+					echo -e "No custom number of jobs specified. Using default number.\n";
 					jobs="4";
 					break;;
 				*)
@@ -72,6 +74,7 @@ while read -p "How many parallel jobs do you wanna use? (Default is 4.) " numjob
 			esac;
 		fi;
 	done;
+	break;
 done;
 	
 echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`";
@@ -115,7 +118,7 @@ ls -l ../Zip_Stock_Peregrine/zImage-dtb;
 cd ../Zip_Stock_Peregrine;
 
 # Set zip name
-zipname="Thunar_"$version"_Peregrine";
+zipname="Kaminari_"$version"_Peregrine";
 
 # Make the zip
 echo -e "Version: $version" > version.txt;
