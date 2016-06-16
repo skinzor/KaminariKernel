@@ -248,10 +248,33 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
-HOSTCXXFLAGS = -O2
+HOSTCC       = ccache gcc
+HOSTCXX      = ccache g++
+ifdef CONFIG_CC_DONT_OPTIMIZE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Og -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -Og -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -Os -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O0 -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O1 -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O1 -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2 -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O3 -fgcse-las
+else ifdef CONFIG_CC_OPTIMIZATION_MAX
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fgcse-las -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -Ofast -fgcse-las
+endif
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -335,7 +358,7 @@ include $(srctree)/scripts/Kbuild.include
 
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
-REAL_CC		= $(CROSS_COMPILE)gcc
+CC		= ccache $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -350,15 +373,16 @@ KALLSYMS	= scripts/kallsyms
 PERL		= perl
 CHECK		= sparse
 
-# Use the wrapper for the compiler.  This wrapper scans for new
-# warnings and causes the build to stop upon encountering them.
-CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
+# Try to always use GNU ld
+ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
+LD		= $(CROSS_COMPILE)ld.bfd
+endif
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
+LDFLAGS_MODULE  = --strip-debug
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
@@ -371,13 +395,20 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
+KAMINARI_FLAGS := -pipe -marm -munaligned-access -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
+                  -mvectorize-with-neon-quad -fgcse-after-reload -fgcse-sm -fmodulo-sched -fmodulo-sched-allow-regmoves \
+                  -funswitch-loops -fpredictive-commoning -fno-inline-functions \
+                  -fno-pic -Wno-unused -Wno-array-bounds -Wno-maybe-uninitialized \
+                  -mno-android -fno-aggressive-loop-optimizations -std=gnu89
+
 KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security -Wno-sizeof-pointer-memaccess \
-		   -fno-delete-null-pointer-checks
+		   -fno-delete-null-pointer-checks -fno-pic \
+                   $(KAMINARI_FLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -567,10 +598,22 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ifdef CONFIG_CC_DONT_OPTIMIZE
+KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
+KBUILD_CFLAGS	+= -Og $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
-else
-KBUILD_CFLAGS	+= -O2
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
+KBUILD_CFLAGS	+= -O0 $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
+KBUILD_CFLAGS	+= -O1 $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
+KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
+KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,)
+else ifdef CONFIG_CC_OPTIMIZATION_MAX
+KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,)
 endif
 
 # conserve stack if available
