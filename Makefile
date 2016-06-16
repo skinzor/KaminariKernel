@@ -398,7 +398,7 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 KAMINARI_FLAGS := -pipe -marm -munaligned-access -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
                   -mvectorize-with-neon-quad -fgcse-after-reload -fgcse-sm -fmodulo-sched -fmodulo-sched-allow-regmoves \
                   -funswitch-loops -fpredictive-commoning -fno-inline-functions \
-                  -fno-pic -Wno-unused -Wno-array-bounds -Wno-maybe-uninitialized \
+                  -fno-pic -Wno-unused -Wno-array-bounds -Wno-maybe-uninitialized -Wno-sizeof-array-argument \
                   -mno-android -fno-aggressive-loop-optimizations -std=gnu89
 
 KBUILD_CPPFLAGS := -D__KERNEL__
