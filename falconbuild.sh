@@ -16,6 +16,7 @@ clear;
 
 # Output some basic info
 echo -e "Building KaminariKernel...";
+echo -e "Device: Moto G (falcon)\n";
 
 while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
 	case $clean in
