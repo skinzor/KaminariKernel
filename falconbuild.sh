@@ -118,7 +118,7 @@ ls -l ../Zip_Stock_Falcon_Overclock/zImage-dtb;
 cd ../Zip_Stock_Falcon_Overclock;
 
 # Set zip name
-zipname="Kaminari_"$version"_Falcon";
+zipname="Kaminari_"$version"_Falcon_Overclock";
 
 # Make the zip
 echo -e "Version: $version" > version.txt;

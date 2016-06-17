@@ -118,7 +118,7 @@ ls -l ../Zip_Stock_Peregrine_Overclock/zImage-dtb;
 cd ../Zip_Stock_Peregrine_Overclock;
 
 # Set zip name
-zipname="Kaminari_"$version"_Peregrine";
+zipname="Kaminari_"$version"_Peregrine_Overclock";
 
 # Make the zip
 echo -e "Version: $version" > version.txt;
