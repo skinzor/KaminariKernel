@@ -92,30 +92,30 @@ fi;
 echo -e "Build finished on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_Stock_Peregrine ]; then 
-	mkdir ../Zip_Stock_Peregrine;
+if [ ! -d ../Zip_Stock_Peregrine_Overclock ]; then 
+	mkdir ../Zip_Stock_Peregrine_Overclock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_Stock_Peregrine/modules ]; then mkdir ../Zip_Stock_Peregrine/modules; fi;
+if [ ! -d ../Zip_Stock_Peregrine_Overclock/modules ]; then mkdir ../Zip_Stock_Peregrine_Overclock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Out_Stock_Peregrine ]; then mkdir ../Out_Stock_Peregrine; fi;
+if [ ! -d ../Out_Stock_Peregrine_Overclock ]; then mkdir ../Out_Stock_Peregrine_Overclock; fi;
 
 # Remove previous modules
-if [ -d ../Zip_Stock_Peregrine/modules ]; then rm -rf ../Zip_Stock_Peregrine/modules/*; fi;
+if [ -d ../Zip_Stock_Peregrine_Overclock/modules ]; then rm -rf ../Zip_Stock_Peregrine_Overclock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_Stock_Peregrine/modules/pronto ]; then mkdir ../Zip_Stock_Peregrine/modules/pronto; fi;
+if [ ! -d ../Zip_Stock_Peregrine_Overclock/modules/pronto ]; then mkdir ../Zip_Stock_Peregrine_Overclock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_Stock_Peregrine/modules/ \;
-mv ../Zip_Stock_Peregrine/modules/wlan.ko ../Zip_Stock_Peregrine/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_Stock_Peregrine_Overclock/modules/ \;
+mv ../Zip_Stock_Peregrine_Overclock/modules/wlan.ko ../Zip_Stock_Peregrine_Overclock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_Stock_Peregrine/;
-ls -l ../Zip_Stock_Peregrine/zImage-dtb;
-cd ../Zip_Stock_Peregrine;
+cp -f arch/arm/boot/zImage-dtb ../Zip_Stock_Peregrine_Overclock/;
+ls -l ../Zip_Stock_Peregrine_Overclock/zImage-dtb;
+cd ../Zip_Stock_Peregrine_Overclock;
 
 # Set zip name
 zipname="Kaminari_"$version"_Peregrine";
@@ -123,4 +123,4 @@ zipname="Kaminari_"$version"_Peregrine";
 # Make the zip
 echo -e "Version: $version" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_Stock_Peregrine;
+mv $zipname.zip ../Out_Stock_Peregrine_Overclock;
