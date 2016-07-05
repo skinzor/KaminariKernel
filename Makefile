@@ -250,31 +250,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = ccache gcc
 HOSTCXX      = ccache g++
-ifdef CONFIG_CC_DONT_OPTIMIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Og -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -Og -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Os -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -Os -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O0 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O1 -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O1 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O2 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O3 -fgcse-las
-else ifdef CONFIG_CC_OPTIMIZATION_MAX
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fgcse-las -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -Ofast -fgcse-las
-endif
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
