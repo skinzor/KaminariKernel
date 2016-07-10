@@ -15,7 +15,7 @@ export CROSS_COMPILE=arm-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building KaminariKernel...";
+echo -e "Building KaminariKernel (Overclock-Ready Version)...";
 echo -e "Device: Moto G (falcon)\n";
 
 while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
@@ -37,19 +37,19 @@ while read -p "Do you wanna specify a release/version number? (Just press enter 
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
 				echo -e "Release number: $rel\n";
-				export LOCALVERSION="-Kaminari-$rel";
+				export LOCALVERSION="-Kaminari-$rel-OCRV";
 				version=$rel;
 			fi;
 		done;
 	elif [[ `echo $rel | gawk --re-interval "/^v/"` ]]; then
 		echo -e "Version number: $rel\n";
-		export LOCALVERSION="-Kaminari-$rel";
+		export LOCALVERSION="-Kaminari-$rel-OCRV";
 		version=$rel;
 	else
 		case $rel in
 			"" | " " )
 				echo -e "No release number specified. Assuming test/nightly build.\n";
-				export LOCALVERSION="-Kaminari-Testing";
+				export LOCALVERSION="-Kaminari-Testing-OCRV";
 				version=`date "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
