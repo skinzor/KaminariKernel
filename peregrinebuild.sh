@@ -15,7 +15,7 @@ export CROSS_COMPILE=arm-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building KaminariKernel...";
+echo -e "Building KaminariKernel (Overclock-Ready Version)...";
 echo -e "Device: Moto G 4G (peregrine)\n";
 
 while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
@@ -37,19 +37,19 @@ while read -p "Do you wanna specify a release/version number? (Just press enter 
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
 				echo -e "Release number: $rel\n";
-				export LOCALVERSION="-Kaminari-$rel";
+				export LOCALVERSION="-Kaminari-$rel-OCRV";
 				version=$rel;
 			fi;
 		done;
 	elif [[ `echo $rel | gawk --re-interval "/^v/"` ]]; then
 		echo -e "Version number: $rel\n";
-		export LOCALVERSION="-Kaminari-$rel";
+		export LOCALVERSION="-Kaminari-$rel-OCRV";
 		version=$rel;
 	else
 		case $rel in
 			"" | " " )
 				echo -e "No release number specified. Assuming test/nightly build.\n";
-				export LOCALVERSION="-Kaminari-Testing";
+				export LOCALVERSION="-Kaminari-Testing-OCRV";
 				version=`date "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
@@ -93,35 +93,35 @@ fi;
 echo -e "Build finished on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Peregrine ]; then 
-	mkdir ../Zip_CustomMM_Peregrine;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock ]; then 
+	mkdir ../Zip_CustomMM_Peregrine_Overclock;
 fi;
 
 # Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_Peregrine/modules ]; then mkdir ../Zip_CustomMM_Peregrine/modules; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock/modules ]; then mkdir ../Zip_CustomMM_Peregrine_Overclock/modules; fi;
 
 # Make the release dir if it doesn't exist
-if [ ! -d ../Out_CustomMM_Peregrine ]; then mkdir ../Out_CustomMM_Peregrine; fi;
+if [ ! -d ../Out_CustomMM_Peregrine_Overclock ]; then mkdir ../Out_CustomMM_Peregrine_Overclock; fi;
 
 # Remove previous modules
-if [ -d ../Zip_CustomMM_Peregrine/modules ]; then rm -rf ../Zip_CustomMM_Peregrine/modules/*; fi;
+if [ -d ../Zip_CustomMM_Peregrine_Overclock/modules ]; then rm -rf ../Zip_CustomMM_Peregrine_Overclock/modules/*; fi;
 
 # Make wi-fi module dir
-if [ ! -d ../Zip_CustomMM_Peregrine/modules/pronto ]; then mkdir ../Zip_CustomMM_Peregrine/modules/pronto; fi;
+if [ ! -d ../Zip_CustomMM_Peregrine_Overclock/modules/pronto ]; then mkdir ../Zip_CustomMM_Peregrine_Overclock/modules/pronto; fi;
 
 # Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Peregrine/modules/ \;
-mv ../Zip_CustomMM_Peregrine/modules/wlan.ko ../Zip_CustomMM_Peregrine/modules/pronto/pronto_wlan.ko;
+find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_Peregrine_Overclock/modules/ \;
+mv ../Zip_CustomMM_Peregrine_Overclock/modules/wlan.ko ../Zip_CustomMM_Peregrine_Overclock/modules/pronto/pronto_wlan.ko;
 
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Peregrine/;
-ls -l ../Zip_CustomMM_Peregrine/zImage-dtb;
-cd ../Zip_CustomMM_Peregrine;
+cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_Peregrine_Overclock/;
+ls -l ../Zip_CustomMM_Peregrine_Overclock/zImage-dtb;
+cd ../Zip_CustomMM_Peregrine_Overclock;
 
 # Set zip name
-zipname="Kaminari_"$version"_Peregrine";
+zipname="Kaminari_"$version"_Peregrine_Overclock";
 
 # Make the zip
 echo -e "Version: $version" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_CustomMM_Peregrine;
+mv $zipname.zip ../Out_CustomMM_Peregrine_Overclock/;
