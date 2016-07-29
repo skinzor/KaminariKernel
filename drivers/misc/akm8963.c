@@ -34,16 +34,11 @@
 #include <linux/of_gpio.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/suspend.h>
 #include <linux/uaccess.h>
 #include <linux/workqueue.h>
 #include <linux/akm8963.h>
 #include <linux/regulator/consumer.h>
-
-#ifdef CONFIG_STATE_NOTIFIER
-#include <linux/state_notifier.h>
-#else
-#include <linux/suspend.h>
-#endif
 
 #define AKM8963_DEBUG_IF	0
 
@@ -56,16 +51,16 @@
 #define I2C_RETRIES        5
 
 struct akm8963_data {
-	struct i2c_client*	i2c;
-	struct input_dev*	input;
-	struct device*		class_dev;
-	struct class*		compass;
+	struct i2c_client	*i2c;
+	struct input_dev	*input;
+	struct device		*class_dev;
+	struct class		*compass;
 	struct work_struct	work;
 
 	wait_queue_head_t	drdy_wq;
 	wait_queue_head_t	open_wq;
 
-	struct regulator* vdd;
+	struct regulator *vdd;
 	struct mutex	sensor_mutex;
 	int8_t		sense_data[SENSOR_DATA_SIZE];
 	uint32_t	drdy_flag;
@@ -86,18 +81,18 @@ struct akm8963_data {
 	int	irq;
 	int	rstn;
 
-#ifdef CONFIG_STATE_NOTIFIER
-  	struct notifier_block notif;
-#else
 	struct notifier_block pm_notifier;
-#endif
 };
 
-static struct akm8963_data* s_akm;
+static struct akm8963_data *s_akm;
 
 /***** I2C I/O functions **********************************************/
 
-static int akm8963_i2c_rxdata (struct i2c_client* i2c, unsigned char* rxData, int length) {
+static int akm8963_i2c_rxdata(
+	struct i2c_client *i2c,
+	unsigned char *rxData,
+	int length)
+{
 	struct i2c_msg msgs[] = {
 		{
 			.addr = i2c->addr,
@@ -132,7 +127,11 @@ static int akm8963_i2c_rxdata (struct i2c_client* i2c, unsigned char* rxData, in
 	return 0;
 }
 
-static int akm8963_i2c_txdata (struct i2c_client* i2c, unsigned char* txData, int length) {
+static int akm8963_i2c_txdata(
+	struct i2c_client *i2c,
+	unsigned char *txData,
+	int length)
+{
 	struct i2c_msg msg[] = {
 		{
 			.addr = i2c->addr,
@@ -160,7 +159,9 @@ static int akm8963_i2c_txdata (struct i2c_client* i2c, unsigned char* txData, in
 	return 0;
 }
 
-static int akm8963_i2c_check_device (struct i2c_client* client) {
+static int akm8963_i2c_check_device(
+	struct i2c_client *client)
+{
 	unsigned char buffer[2];
 	int err;
 
@@ -186,7 +187,10 @@ static int akm8963_i2c_check_device (struct i2c_client* client) {
 
 /***** akm miscdevice functions *************************************/
 
-static int AKECS_Set_CNTL1 (struct akm8963_data* akm, unsigned char mode) {
+static int AKECS_Set_CNTL1(
+	struct akm8963_data *akm,
+	unsigned char mode)
+{
 	unsigned char buffer[2];
 	int err;
 
@@ -206,7 +210,9 @@ static int AKECS_Set_CNTL1 (struct akm8963_data* akm, unsigned char mode) {
 	return err;
 }
 
-static int AKECS_Reset (struct akm8963_data* akm) {
+static int AKECS_Reset(
+	struct akm8963_data *akm)
+{
 	unsigned char buffer[2];
 	int err = 0;
 
@@ -232,7 +238,10 @@ static int AKECS_Reset (struct akm8963_data* akm) {
 	return err;
 }
 
-static int AKECS_SetMode (struct akm8963_data* akm, unsigned char mode) {
+static int AKECS_SetMode(
+	struct akm8963_data *akm,
+	unsigned char mode)
+{
 	int err;
 
 	mutex_lock(&akm->state_mutex);
@@ -271,7 +280,11 @@ static int AKECS_SetMode (struct akm8963_data* akm, unsigned char mode) {
 /* This function will block a process until the latest measurement
  * data is available.
  */
-static int AKECS_GetData (struct akm8963_data* akm, char* rbuf, int size) {
+static int AKECS_GetData(
+	struct akm8963_data *akm,
+	char *rbuf,
+	int size)
+{
 	int err;
 	err = wait_event_interruptible_timeout(
 			akm->drdy_wq,
@@ -297,7 +310,10 @@ static int AKECS_GetData (struct akm8963_data* akm, char* rbuf, int size) {
 	return 0;
 }
 
-static void AKECS_SetYPR (struct akm8963_data* akm, int* rbuf) {
+static void AKECS_SetYPR(
+	struct akm8963_data *akm,
+	int *rbuf)
+{
 	uint32_t ready;
 	dev_vdbg(&akm->i2c->dev, "%s: flag =0x%X",
 		 __func__, rbuf[0]);
@@ -340,28 +356,36 @@ static void AKECS_SetYPR (struct akm8963_data* akm, int* rbuf) {
 	input_sync(akm->input);
 }
 
-static int AKECS_GetOpenStatus (struct akm8963_data* akm) {
+static int AKECS_GetOpenStatus(
+	struct akm8963_data *akm)
+{
 	return wait_event_interruptible(
 			akm->open_wq, (akm->active_flag != 0));
 }
 
-static int AKECS_GetCloseStatus (struct akm8963_data* akm) {
+static int AKECS_GetCloseStatus(
+	struct akm8963_data *akm)
+{
 	return wait_event_interruptible(
 			akm->open_wq, (akm->active_flag <= 0));
 }
 
-static int AKECS_Open (struct inode* inode, struct file* file) {
+static int AKECS_Open(struct inode *inode, struct file *file)
+{
 	file->private_data = s_akm;
 	return nonseekable_open(inode, file);
 }
 
-static int AKECS_Release (struct inode* inode, struct file* file) {
+static int AKECS_Release(struct inode *inode, struct file *file)
+{
 	return 0;
 }
 
-static long AKECS_ioctl (struct file* file, unsigned int cmd, unsigned long arg) {
-	void __user* argp = (void __user *)arg;
-	struct akm8963_data* akm = file->private_data;
+static long
+AKECS_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	void __user *argp = (void __user *)arg;
+	struct akm8963_data *akm = file->private_data;
 
 	char i2c_buf[RWBUF_SIZE];
 	int8_t sensor_buf[SENSOR_DATA_SIZE];
@@ -601,7 +625,10 @@ static struct miscdevice akm8963_dev = {
 
 /***** akm sysfs functions ******************************************/
 
-static int create_device_attributes (struct device* dev, struct device_attribute* attrs) {
+static int create_device_attributes(
+	struct device *dev,
+	struct device_attribute *attrs)
+{
 	int i;
 	int err = 0;
 
@@ -620,14 +647,20 @@ static int create_device_attributes (struct device* dev, struct device_attribute
 	return err;
 }
 
-static void remove_device_attributes (struct device* dev, struct device_attribute* attrs) {
+static void remove_device_attributes(
+	struct device *dev,
+	struct device_attribute *attrs)
+{
 	int i;
 
 	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		device_remove_file(dev, &attrs[i]);
 }
 
-static int create_device_binary_attributes (struct kobject* kobj, struct bin_attribute* attrs) {
+static int create_device_binary_attributes(
+	struct kobject *kobj,
+	struct bin_attribute *attrs)
+{
 	int i;
 	int err = 0;
 
@@ -648,14 +681,18 @@ static int create_device_binary_attributes (struct kobject* kobj, struct bin_att
 	return err;
 }
 
-static void remove_device_binary_attributes (struct kobject* kobj, struct bin_attribute* attrs) {
+static void remove_device_binary_attributes(
+	struct kobject *kobj,
+	struct bin_attribute *attrs)
+{
 	int i;
 
 	for (i = 0 ; NULL != attrs[i].attr.name ; ++i)
 		sysfs_remove_bin_file(kobj, &attrs[i]);
 }
 
-static bool get_value_as_int (char const* buf, size_t size, int* value) {
+static bool get_value_as_int(char const *buf, size_t size, int *value)
+{
 	long tmp;
 
 	if (size == 0)
@@ -686,7 +723,8 @@ static bool get_value_as_int (char const* buf, size_t size, int* value) {
 	return true;
 }
 
-static bool get_value_as_int64(char const* buf, size_t size, long long* value) {
+static bool get_value_as_int64(char const *buf, size_t size, long long *value)
+{
 	long long tmp;
 
 	if (size == 0)
@@ -742,7 +780,9 @@ static bool get_value_as_int64(char const* buf, size_t size, long long* value) {
 
 /***** sysfs enable *************************************************/
 
-static ssize_t akm8963_sysfs_enable_show (struct akm8963_data* akm, char* buf, int pos) {
+static ssize_t akm8963_sysfs_enable_show(
+	struct akm8963_data *akm, char *buf, int pos)
+{
 	int flag;
 
 	flag = ((akm->enable_flag >> pos) & 1);
@@ -750,7 +790,9 @@ static ssize_t akm8963_sysfs_enable_show (struct akm8963_data* akm, char* buf, i
 	return sprintf(buf, "%d\n", flag);
 }
 
-static ssize_t akm8963_sysfs_enable_store (struct akm8963_data* akm, char const* buf, size_t count, int pos) {
+static ssize_t akm8963_sysfs_enable_store(
+	struct akm8963_data *akm, char const *buf, size_t count, int pos)
+{
 	int en = 0;
 
 	if (NULL == buf)
@@ -803,40 +845,57 @@ static ssize_t akm8963_sysfs_enable_store (struct akm8963_data* akm, char const*
 
 /***** Accelerometer Enable ***/
 
-static ssize_t akm8963_enable_acc_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_enable_acc_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_enable_show(
 		dev_get_drvdata(dev), buf, ACC_DATA_FLAG);
 }
-static ssize_t akm8963_enable_acc_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_enable_acc_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_enable_store(
 		dev_get_drvdata(dev), buf, count, ACC_DATA_FLAG);
 }
 
 /***** Magnetometer Enable ***/
 
-static ssize_t akm8963_enable_mag_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_enable_mag_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_enable_show(
 		dev_get_drvdata(dev), buf, MAG_DATA_FLAG);
 }
-static ssize_t akm8963_enable_mag_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_enable_mag_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_enable_store(
 		dev_get_drvdata(dev), buf, count, MAG_DATA_FLAG);
 }
 
 /***** Orientation Enable ***/
 
-static ssize_t akm8963_enable_ori_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_enable_ori_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_enable_show(
 		dev_get_drvdata(dev), buf, ORI_DATA_FLAG);
 }
-static ssize_t akm8963_enable_ori_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_enable_ori_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_enable_store(
 		dev_get_drvdata(dev), buf, count, ORI_DATA_FLAG);
 }
 
 /***** sysfs delay **************************************************/
 
-static ssize_t akm8963_sysfs_delay_show (struct akm8963_data* akm, char* buf, int pos) {
+static ssize_t akm8963_sysfs_delay_show(
+	struct akm8963_data *akm, char *buf, int pos)
+{
 	int64_t val;
 
 	val = akm->delay[pos];
@@ -844,7 +903,9 @@ static ssize_t akm8963_sysfs_delay_show (struct akm8963_data* akm, char* buf, in
 	return sprintf(buf, "%lld\n", val);
 }
 
-static ssize_t akm8963_sysfs_delay_store (struct akm8963_data* akm, char const* buf, size_t count, int pos) {
+static ssize_t akm8963_sysfs_delay_store(
+	struct akm8963_data *akm, char const *buf, size_t count, int pos)
+{
 	long long val = 0;
 
 	if (NULL == buf)
@@ -863,33 +924,48 @@ static ssize_t akm8963_sysfs_delay_store (struct akm8963_data* akm, char const* 
 
 /***** Accelerometer Delay ***/
 
-static ssize_t akm8963_delay_acc_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_delay_acc_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_delay_show(
 		dev_get_drvdata(dev), buf, ACC_DATA_FLAG);
 }
-static ssize_t akm8963_delay_acc_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_delay_acc_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_delay_store(
 		dev_get_drvdata(dev), buf, count, ACC_DATA_FLAG);
 }
 
 /***** Magnetometer Delay ***/
 
-static ssize_t akm8963_delay_mag_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_delay_mag_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_delay_show(
 		dev_get_drvdata(dev), buf, MAG_DATA_FLAG);
 }
-static ssize_t akm8963_delay_mag_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_delay_mag_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_delay_store(
 		dev_get_drvdata(dev), buf, count, MAG_DATA_FLAG);
 }
 
 /***** Orientation Delay ***/
 
-static ssize_t akm8963_delay_ori_show (struct device* dev, struct device_attribute* attr, char* buf) {
+static ssize_t akm8963_delay_ori_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return akm8963_sysfs_delay_show(
 		dev_get_drvdata(dev), buf, ORI_DATA_FLAG);
 }
-static ssize_t akm8963_delay_ori_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_delay_ori_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	return akm8963_sysfs_delay_store(
 		dev_get_drvdata(dev), buf, count, ORI_DATA_FLAG);
 }
@@ -897,10 +973,17 @@ static ssize_t akm8963_delay_ori_store (struct device* dev, struct device_attrib
 
 /***** accel (binary) ***/
 
-static ssize_t akm8963_bin_accel_write (struct file* file, struct kobject* kobj, struct bin_attribute* attr, char* buf, loff_t pos, size_t size) {
-	struct device* dev = container_of(kobj, struct device, kobj);
-	struct akm8963_data* akm = dev_get_drvdata(dev);
-	int16_t* accel_data;
+static ssize_t akm8963_bin_accel_write(
+	struct file *file,
+	struct kobject *kobj,
+	struct bin_attribute *attr,
+			char *buf,
+			loff_t pos,
+			size_t size)
+{
+	struct device *dev = container_of(kobj, struct device, kobj);
+	struct akm8963_data *akm = dev_get_drvdata(dev);
+	int16_t *accel_data;
 
 	if (size == 0)
 		return 0;
@@ -921,7 +1004,10 @@ static ssize_t akm8963_bin_accel_write (struct file* file, struct kobject* kobj,
 
 
 #ifdef AKM8963_DEBUG_IF
-static ssize_t akm8963_mode_store (struct device* dev, struct device_attribute* attr, char const* buf, size_t count) {
+static ssize_t akm8963_mode_store(
+	struct device *dev, struct device_attribute *attr,
+	char const *buf, size_t count)
+{
 	struct akm8963_data *akm = dev_get_drvdata(dev);
 	int mode = 0;
 
@@ -940,8 +1026,10 @@ static ssize_t akm8963_mode_store (struct device* dev, struct device_attribute* 
 	return 1;
 }
 
-static ssize_t akm8963_bdata_show (struct device* dev, struct device_attribute* attr, char* buf) {
-	struct akm8963_data* akm = dev_get_drvdata(dev);
+static ssize_t akm8963_bdata_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct akm8963_data *akm = dev_get_drvdata(dev);
 	char rbuf[SENSOR_DATA_SIZE];
 
 	mutex_lock(&akm->sensor_mutex);
@@ -955,8 +1043,10 @@ static ssize_t akm8963_bdata_show (struct device* dev, struct device_attribute* 
 		rbuf[4], rbuf[5], rbuf[6], rbuf[7]);
 }
 
-static ssize_t akm8963_asa_show (struct device* dev, struct device_attribute* attr, char* buf) {
-	struct akm8963_data* akm = dev_get_drvdata(dev);
+static ssize_t akm8963_asa_show(
+	struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct akm8963_data *akm = dev_get_drvdata(dev);
 	int err;
 	unsigned char asa[3];
 
@@ -1019,12 +1109,13 @@ static struct bin_attribute akm8963_bin_attributes[] = {
 	__BIN_ATTR_NULL
 };
 
-static char const* const compass_class_name = "compass";
-static char const* const akm8963_device_name = "akm8963";
-static char const* const device_link_name = "i2c";
+static char const *const compass_class_name = "compass";
+static char const *const akm8963_device_name = "akm8963";
+static char const *const device_link_name = "i2c";
 static dev_t const akm8963_device_dev_t = MKDEV(MISC_MAJOR, 240);
 
-static int create_sysfs_interfaces(struct akm8963_data* akm) {
+static int create_sysfs_interfaces(struct akm8963_data *akm)
+{
 	int err;
 
 	if (NULL == akm)
@@ -1084,7 +1175,8 @@ exit_class_create_failed:
 	return err;
 }
 
-static void remove_sysfs_interfaces(struct akm8963_data* akm) {
+static void remove_sysfs_interfaces(struct akm8963_data *akm)
+{
 	if (NULL == akm)
 		return;
 
@@ -1112,7 +1204,9 @@ static void remove_sysfs_interfaces(struct akm8963_data* akm) {
 
 /***** akm input device functions ***********************************/
 
-static int akm8963_input_init (struct input_dev** input) {
+static int akm8963_input_init(
+	struct input_dev **input)
+{
 	int err = 0;
 
 	/* Declare input device */
@@ -1166,8 +1260,9 @@ static int akm8963_input_init (struct input_dev** input) {
 
 /***** akm functions ************************************************/
 
-static void akm8963_work(struct work_struct* work) {
-	struct akm8963_data* akm = container_of(
+static void akm8963_work(struct work_struct *work)
+{
+	struct akm8963_data *akm = container_of(
 		work, struct akm8963_data, work);
 	char buffer[SENSOR_DATA_SIZE];
 	int err;
@@ -1196,8 +1291,9 @@ work_func_end:
 	enable_irq(akm->irq);
 }
 
-static irqreturn_t akm8963_irq (int irq, void* handle) {
-	struct akm8963_data* akm = handle;
+static irqreturn_t akm8963_irq(int irq, void *handle)
+{
+	struct akm8963_data *akm = handle;
 
 	disable_irq_nosync(akm->irq);
 	schedule_work(&akm->work);
@@ -1205,52 +1301,8 @@ static irqreturn_t akm8963_irq (int irq, void* handle) {
 	return IRQ_HANDLED;
 }
 
-#ifdef CONFIG_STATE_NOTIFIER
-static void akm8963_suspend (void) {
-	dev_info(&s_akm->i2c->dev, "%s: Suspend\n", __func__);
-
-	disable_irq(s_akm->irq);
-
-	mutex_lock(&s_akm->state_mutex);
-	s_akm->suspend_flag = 1;
-	s_akm->drdy_flag = 0;
-	s_akm->busy_flag = 0;
-	s_akm->active_flag = 0;
-	mutex_unlock(&s_akm->state_mutex);
-
-	wake_up(&s_akm->open_wq);
-}
-
-static int akm8963_resume (void) {
-	dev_info(&s_akm->i2c->dev, "%s: Resume\n", __func__);
-
-	mutex_lock(&s_akm->state_mutex);
-	if (s_akm->enable_flag != 0)
-		s_akm->active_flag = 1;
-	s_akm->suspend_flag = 0;
-	mutex_unlock(&s_akm->state_mutex);
-
-	enable_irq(s_akm->irq);
-
-	wake_up(&s_akm->open_wq);
-}
-
-static int state_notifier_callback (struct notifier_block* this, unsigned long event, void* data) {
-	switch (event) {
-	case STATE_NOTIFIER_ACTIVE:
-		akm8963_resume();
-		break;
-	case STATE_NOTIFIER_SUSPEND:
-		akm8963_suspend();
-		break;
-	default:
-		break;
-	}
-
-	return NOTIFY_OK;
-}
-#else
-static int akm8963_suspend (struct akm8963_data* akm) {
+static int akm8963_suspend(struct akm8963_data *akm)
+{
 	dev_info(&akm->i2c->dev, "%s: Suspend\n", __func__);
 
 	disable_irq(akm->irq);
@@ -1267,7 +1319,8 @@ static int akm8963_suspend (struct akm8963_data* akm) {
 	return 0;
 }
 
-static int akm8963_resume (struct akm8963_data* akm) {
+static int akm8963_resume(struct akm8963_data *akm)
+{
 	dev_info(&akm->i2c->dev, "%s: Resume\n", __func__);
 
 	mutex_lock(&akm->state_mutex);
@@ -1283,8 +1336,11 @@ static int akm8963_resume (struct akm8963_data* akm) {
 	return 0;
 }
 
-static int akm8963_pm_event (struct notifier_block* this, unsigned long event, void* ptr) {
-	struct akm8963_data* akm = container_of (this, struct akm8963_data, pm_notifier);
+static int akm8963_pm_event(struct notifier_block *this,
+	unsigned long event, void *ptr)
+{
+	struct akm8963_data *akm = container_of(this,
+		struct akm8963_data, pm_notifier);
 
 	switch (event) {
 	case PM_SUSPEND_PREPARE:
@@ -1297,12 +1353,13 @@ static int akm8963_pm_event (struct notifier_block* this, unsigned long event, v
 
 	return NOTIFY_DONE;
 }
-#endif
 
 #ifdef CONFIG_OF
-static struct akm8963_platform_data* akm8963_of_init (struct i2c_client* client) {
-	struct akm8963_platform_data* pdata;
-	struct device_node* np = client->dev.of_node;
+static struct akm8963_platform_data *
+akm8963_of_init(struct i2c_client *client)
+{
+	struct akm8963_platform_data *pdata;
+	struct device_node *np = client->dev.of_node;
 	u32 val;
 
 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
@@ -1332,13 +1389,16 @@ static struct akm8963_platform_data* akm8963_of_init (struct i2c_client* client)
 	return pdata;
 }
 #else
-static inline struct akm8963_platform_data* akm8963_of_init (struct i2c_client*client) {
+static inline struct akm8963_platform_data *
+akm8963_of_init(struct i2c_client *client)
+{
 	return NULL;
 }
 #endif
 
-int akm8963_probe(struct i2c_client* client, struct i2c_device_id const* id) {
-	struct akm8963_platform_data* pdata;
+int akm8963_probe(struct i2c_client *client, const struct i2c_device_id *id)
+{
+	struct akm8963_platform_data *pdata;
 	int err = 0;
 	int i;
 
@@ -1474,21 +1534,13 @@ int akm8963_probe(struct i2c_client* client, struct i2c_device_id const* id) {
 			"%s: create sysfs failed.", __func__);
 		goto exit_sfs_fail;
 	}
-#ifdef CONFIG_STATE_NOTIFIER
-	s_akm->notif.notifier_call = state_notifier_callback;
-	err = state_register_client(&s_akm->notif);
-	if (err < 0) {
-		pr_err("%s:Failed to register state notifier client for: %d\n", __func__, err);
-		goto exit_pm_fail;
-	}
-#else
+
 	s_akm->pm_notifier.notifier_call = akm8963_pm_event;
 	err = register_pm_notifier(&s_akm->pm_notifier);
 	if (err < 0) {
 		pr_err("%s:Register_pm_notifier failed: %d\n", __func__, err);
 		goto exit_pm_fail;
 	}
-#endif
 
 	dev_info(&client->dev, "%s: success", __func__);
 	return 0;
@@ -1514,18 +1566,16 @@ exit_i2c_fail:
 	return err;
 }
 
-static int akm8963_remove (struct i2c_client* client) {
-	struct akm8963_data* akm = i2c_get_clientdata(client);
+static int akm8963_remove(struct i2c_client *client)
+{
+	struct akm8963_data *akm = i2c_get_clientdata(client);
 
 	if (akm->vdd != NULL) {
 		regulator_disable(akm->vdd);
 		regulator_put(akm->vdd);
 	}
-#ifdef CONFIG_STATE_NOTIFIER
-	state_unregister_client(&s_akm->notif);
-#else
+
 	unregister_pm_notifier(&akm->pm_notifier);
-#endif
 	remove_sysfs_interfaces(akm);
 	if (misc_deregister(&akm8963_dev) < 0)
 		dev_err(&client->dev, "%s: misc deregister failed.", __func__);
@@ -1546,7 +1596,7 @@ MODULE_DEVICE_TABLE(of, akm8963_match_tbl);
 #endif
 
 
-static struct const i2c_device_id akm8963_id[] = {
+static const struct i2c_device_id akm8963_id[] = {
 	{AKM8963_I2C_NAME, 0 },
 	{ }
 };
@@ -1561,12 +1611,14 @@ static struct i2c_driver akm8963_driver = {
 	},
 };
 
-static int __init akm8963_init (void) {
+static int __init akm8963_init(void)
+{
 	printk(KERN_INFO "AKM8963 compass driver: initialize.");
 	return i2c_add_driver(&akm8963_driver);
 }
 
-static void __exit akm8963_exit (void) {
+static void __exit akm8963_exit(void)
+{
 	printk(KERN_INFO "AKM8963 compass driver: release.");
 	i2c_del_driver(&akm8963_driver);
 }
