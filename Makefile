@@ -248,9 +248,9 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
+HOSTCC       = ccache gcc
+HOSTCXX      = ccache g++
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
 HOSTCXXFLAGS = -O2
 
 # Decide whether to build built-in, modular, or both.
@@ -335,7 +335,7 @@ include $(srctree)/scripts/Kbuild.include
 
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
-REAL_CC		= $(CROSS_COMPILE)gcc
+CC		= ccache $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -355,15 +355,11 @@ ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
 LD		= $(CROSS_COMPILE)ld.bfd
 endif
 
-# Use the wrapper for the compiler.  This wrapper scans for new
-# warnings and causes the build to stop upon encountering them.
-CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
-
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
+LDFLAGS_MODULE  = --strip-debug
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
@@ -376,13 +372,20 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
+KAMINARI_FLAGS := -pipe -munaligned-access -mfloat-abi=softfp -mvectorize-with-neon-quad -mfpu=neon-vfpv4 \
+		   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+		   -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
+		   -fno-pic -Wno-unused -Wno-maybe-uninitialized -Wno-array-bounds -Wno-sizeof-array-argument -mno-android \
+		   --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048
+
 KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security -Wno-sizeof-pointer-memaccess \
-		   -fno-delete-null-pointer-checks
+		   -fno-delete-null-pointer-checks -fno-pic \
+                   $(KAMINARI_FLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -572,15 +575,23 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ifdef CONFIG_CC_DONT_OPTIMIZE
+KBUILD_CFLAGS	+=
+else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
+KBUILD_CFLAGS	+= -Og
+else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
-else
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
+KBUILD_CFLAGS	+= -O0
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
+KBUILD_CFLAGS	+= -O1
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
 KBUILD_CFLAGS	+= -O2
+else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
+KBUILD_CFLAGS	+= -O3
+else ifdef CONFIG_CC_OPTIMIZATION_MAX
+KBUILD_CFLAGS	+= -Ofast
 endif
-
-# conserve stack if available
-# do this early so that an architecture can override it.
-KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
@@ -609,8 +620,6 @@ ifndef CONFIG_FUNCTION_TRACER
 KBUILD_CFLAGS	+= -fomit-frame-pointer
 endif
 endif
-
-KBUILD_CFLAGS   += $(call cc-option, -fno-var-tracking-assignments)
 
 ifdef CONFIG_DEBUG_INFO
 KBUILD_CFLAGS	+= -g
