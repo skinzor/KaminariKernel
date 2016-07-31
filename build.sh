@@ -18,7 +18,7 @@ clear;
 echo -e "Building KaminariKernel...";
 echo -e "Device: Moto G (falcon)\n";
 
-while read -p "Which device do you want to build this kernel for?\n1 - Moto G GSM (falcon)\n2 - Moto G 4G (peregrine)\n3 - Moto G 2nd Gen (titan/thea)" dev; do
+while read -p "Which device do you want to build this kernel for? (1 - Moto G GSM (falcon) / 2 - Moto G 4G (peregrine) / 3 - Moto G 2nd Gen (titan/thea))" dev; do
 	case $dev in
 		"1")
 			echo -e "Selected device: Moto G GSM/CDMA (falcon)\n"
