@@ -18,7 +18,12 @@ clear;
 echo -e "Building KaminariKernel...";
 echo -e "Device: Moto G (falcon)\n";
 
-while read -p "Which device do you want to build this kernel for? (1 - Moto G GSM (falcon) / 2 - Moto G 4G (peregrine) / 3 - Moto G 2nd Gen (titan/thea))" dev; do
+devicestr="Which device do you want to build for?
+1. Moto G (1st gen, GSM/CDMA) (falcon)
+2. Moto G (1st gen, LTE) (peregrine)
+3. Moto G (2nd gen, GSM/LTE) (titan/thea)";
+
+while read -p "$devicestr " dev; do
 	case $dev in
 		"1")
 			echo -e "Selected device: Moto G GSM/CDMA (falcon)\n"
@@ -41,7 +46,7 @@ while read -p "Which device do you want to build this kernel for? (1 - Moto G GS
 done;
 		
 
-while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " clean; do
+while read -p "Do you want to clean everything (generated files, etc.)? (Y/N) " clean; do
 	case $clean in
 		"y" | "Y" | "yes" | "Yes")
 			echo -e "Cleaning everything...\n";
@@ -55,7 +60,7 @@ while read -p "Do you wanna clean everything (generated files, etc.)? (Y/N) " cl
 	esac;
 done;
 
-while read -p "Do you wanna specify a release/version number? (Just press enter if you don't.) " rel; do
+while read -p "Do you want to specify a release/version number? (Just press enter if you don't.) " rel; do
 	if [[ `echo $rel | gawk --re-interval "/^R/"` != "" ]]; then
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
@@ -82,7 +87,7 @@ while read -p "Do you wanna specify a release/version number? (Just press enter 
 	break;
 done;
 
-while read -p "How many parallel jobs do you wanna use? (Default is 4.) " numjobs; do
+while read -p "How many parallel jobs do you want to use? (Default is 4.) " numjobs; do
 	for i in $sequence; do
 		if [[ $numjobs = $i ]]; then
 			echo -e "Number of custom jobs: $numjobs\n";
