@@ -81,7 +81,7 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 				version=`date "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
-				echo -e "Localversion set as: $rel"\n;
+				echo -e "Localversion set as: $rel\n";
 				export LOCALVERSION="-Kaminari-$rel";
 				version=$rel;
 				break;;
