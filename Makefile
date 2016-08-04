@@ -376,7 +376,7 @@ KAMINARI_FLAGS := -pipe -munaligned-access -mfloat-abi=softfp -mvectorize-with-n
 		   -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
 		   -fno-pic -Wno-unused -Wno-maybe-uninitialized -Wno-array-bounds -Wno-sizeof-array-argument -mno-android \
-		   --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048
+		   --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048 -std=gnu89
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
