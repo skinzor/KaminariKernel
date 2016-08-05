@@ -72,7 +72,12 @@
 #define ODR400		0x70
 #define ODR1250		0x90
 
-#define ROTATE_PM_MODE	(PM_LOW|ODR100|ENABLE_ALL_AXES)
+#ifdef CONFIG_CM13_KERNEL
+	#define ROTATE_PM_MODE		(PM_LOW|ODR100|ENABLE_ALL_AXES)
+	#define MOVEMENT_PM_MODE	(PM_LOW|ODR10|ENABLE_ALL_AXES)
+#else
+	#define ROTATE_PM_MODE	(PM_LOW|ODR100|ENABLE_ALL_AXES)
+#endif
 
 #define G_2G		0x00
 #define G_4G		0x10
@@ -91,9 +96,18 @@
 #define ENABLE_D4D_INT1		0x04
 
 #define MODE_OFF		0
-#define MODE_ACCEL		1
-#define MODE_ROTATE		2
-#define MODE_ALL		3
+
+#ifdef CONFIG_CM13_KERNEL
+	#define MODE_ACCEL		(1 << 0)
+ 	#define MODE_ROTATE		(1 << 1)
+ 	#define MODE_MOVEMENT		(1 << 2)
+	#define MODE_ACCEL_ROTATE	(MODE_ACCEL | MODE_ROTATE)
+	#define MODE_ACCEL_MOVEMENT	(MODE_ACCEL | MODE_MOVEMENT)
+#else
+	#define MODE_ACCEL		1
+	#define MODE_ROTATE		2
+	#define MODE_ALL		3
+#endif
 
 #define TYPE_UNKNOWN		-1
 #define TYPE_PORTRAIT		0
@@ -117,6 +131,15 @@
 #define INT_CFG_INIT_THRESHOLD	0x2D
 #define INT_CFG_THRESHOLD	0x20
 #define INT_CFG_DURATION	0x05
+
+#ifdef CONFIG_CM13_KERNEL	
+	#define HP_CONFIG_MOVEMENT	0x1
+	#define INT1_CFG_MOVEMENT	(INT_XH_BIT | INT_YH_BIT | INT_ZH_BIT)
+	#define INT1_THS_MOVEMENT	0x1
+
+	/* The exact duration depends on the select ODR */
+	#define MOVEMENT_DURATION_MS	3000 /* milliseconds */
+#endif
 
 static struct {
 	unsigned int cutoff;
@@ -145,6 +168,9 @@ struct lis3dh_data {
 
 	struct regulator *vdd;
 	int irq;
+#ifdef CONFIG_CM13_KERNEL
+	int irq_enabled;
+#endif
 	int mode;
 	int hw_initialized;
 	atomic_t enabled;
@@ -152,8 +178,16 @@ struct lis3dh_data {
 	u8 shift_adj;
 	u8 resume_state[5];
 	u8 irq_config[3];
-
+	
+#ifdef CONFIG_CM13_KERNEL
+	int update_odr;
+#else
 	struct notifier_block pm_notifier;
+#endif
+	
+#ifdef CONFIG_CM13_KERNEL
+	int mode_before_suspend;
+#endif
 };
 
 /*
@@ -226,6 +260,54 @@ static int lis3dh_i2c_write(struct lis3dh_data *lis, u8 * buf, int len)
 	return err;
 }
 
+#ifdef CONFIG_CM13_KERNEL
+static int duration_to_lsb(struct lis3dh_data *lis, int duration_ms, u8 *lsb)
+{
+	int odr = lis->resume_state[0] & 0xF0;
+	int hz;
+
+	switch (odr) {
+	case ODR_OFF:
+		hz = 0;
+		break;
+	case ODR1:
+		hz = 1;
+		break;
+	case ODR10:
+		hz = 10;
+		break;
+	case ODR25:
+		hz = 25;
+		break;
+	case ODR50:
+		hz = 50;
+		break;
+	case ODR100:
+		hz = 100;
+		break;
+	case ODR400:
+		hz = 400;
+		break;
+	case ODR1250:
+		/*
+		 * NOTE: In this case the frequency depends on the current
+		 * power mode. However, this ODR is selected only when the
+		 * current mode comprises includes MODE_ACCEL, which puts
+		 * the sensor in normal power mode.
+		 */
+		hz = 1250;
+		break;
+	default:
+		dev_err(&lis->client->dev, "Unknown ODR value: %x\n", odr);
+		return -EINVAL;
+	}
+
+	*lsb = DIV_ROUND_UP(duration_ms * hz, 1000);
+
+	return 0;
+}
+#endif
+
 static int lis3dh_read_int_data(struct lis3dh_data *lis)
 {
 	int err = -1;
@@ -268,6 +350,9 @@ static int lis3dh_hw_init(struct lis3dh_data *lis)
 	if (err < 0)
 		return err;
 	lis->hw_initialized = 1;
+#ifdef CONFIG_CM13_KERNEL
+	lis->update_odr=0;
+#endif
 
 	return 0;
 }
@@ -307,6 +392,30 @@ static int lis3dh_device_power_on(struct lis3dh_data *lis)
 
 	return 0;
 }
+
+#ifdef CONFIG_CM13_KERNEL
+static int lis3dh_write_config(struct lis3dh_data *lis, u8 config)
+{
+	int err;
+	u8 buf[2];
+
+	buf[0] = CTRL_REG1;
+	buf[1] = config;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+		
+	buf[0] = INT1_DURATION;
+	err = duration_to_lsb(lis, MOVEMENT_DURATION_MS, &buf[1]);
+	if (err < 0)
+		return err;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+#endif
 
 int lis3dh_update_g_range(struct lis3dh_data *lis, int new_g_range)
 {
@@ -358,7 +467,11 @@ int lis3dh_update_odr(struct lis3dh_data *lis, int poll_interval)
 {
 	int err = -1;
 	int i;
+#ifdef CONFIG_CM13_KERNEL
+	u8 config;
+#else
 	u8 config[2];
+#endif
 
 	/* Convert the poll interval into an output data rate configuration
 	 *  that is as low as possible.  The ordering of these checks must be
@@ -366,27 +479,54 @@ int lis3dh_update_odr(struct lis3dh_data *lis, int poll_interval)
 	 *  checked from shortest to longest.  At each check, if the next lower
 	 *  ODR cannot support the current poll interval, we stop searching */
 	for (i = 0; i < ARRAY_SIZE(odr_table); i++) {
+#ifdef CONFIG_CM13_KERNEL
+		config = odr_table[i].mask;
+#else
 		config[1] = odr_table[i].mask;
+#endif
 		if (poll_interval < odr_table[i].cutoff)
 			break;
 	}
 
+#ifdef CONFIG_CM13_KERNEL	
+	config |= ENABLE_ALL_AXES;
+#else
 	config[1] |= ENABLE_ALL_AXES;
+#endif
 
 	/* Overwrite CTRL_REG1 to set low power mode for ROTATE sensor */
 	if (lis->mode == MODE_ROTATE)
+#ifdef CONFIG_CM13_KERNEL
+		config = ROTATE_PM_MODE;
+	else if (lis->mode == MODE_MOVEMENT)
+		config = MOVEMENT_PM_MODE;
+#else
 		config[1] = ROTATE_PM_MODE;
+#endif
 
 	/* If device is currently enabled, we need to write new
 	 *  configuration out to it */
 	if (atomic_read(&lis->enabled)) {
+#ifdef CONFIG_CM13_KERNEL
+		err = lis3dh_write_config(lis, config)
+#else
 		config[0] = CTRL_REG1;
 		err = lis3dh_i2c_write(lis, config, 1);
+#endif		
 		if (err < 0)
 			return err;
+#ifdef CONFIG_CM13_KERNEL
+		lis->update_odr = 0;
+	} else {
+		lis->update_odr = 1;
+#endif			
 	}
 
+#ifdef CONFIG_CM13_KERNEL
+	lis->resume_state[0] = config;
+#else
 	lis->resume_state[0] = config[1];
+#endif
 
 	return 0;
 }
@@ -419,6 +559,15 @@ static int lis3dh_get_acceleration_data(struct lis3dh_data *lis, int *xyz)
 
 static void lis3dh_report_values(struct lis3dh_data *lis, int *xyz)
 {
+#ifdef CONFIG_CM13_KERNEL
+	ktime_t timestamp = ktime_get_boottime();
+
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_SEC,
+		ktime_to_timespec(timestamp).tv_sec);
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_NSEC,
+		ktime_to_timespec(timestamp).tv_nsec);
+#endif
+
 	input_report_abs(lis->input_dev, ABS_X, xyz[0]);
 	input_report_abs(lis->input_dev, ABS_Y, xyz[1]);
 	input_report_abs(lis->input_dev, ABS_Z, xyz[2]);
@@ -427,12 +576,39 @@ static void lis3dh_report_values(struct lis3dh_data *lis, int *xyz)
 
 static void lis3dh_report_rotate(struct lis3dh_data *lis, int flat)
 {
+#ifdef CONFIG_CM13_KERNEL
+	ktime_t timestamp = ktime_get_boottime();
+
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_SEC,
+		ktime_to_timespec(timestamp).tv_sec);
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_NSEC,
+		ktime_to_timespec(timestamp).tv_nsec);
+#endif
 	input_event(lis->input_dev, EV_MSC, MSC_RAW, flat);
 	input_sync(lis->input_dev);
 }
 
+#ifdef CONFIG_CM13_KERNEL
+static void lis3dh_report_movement(struct lis3dh_data *lis)
+{
+	ktime_t timestamp = ktime_get_boottime();
+
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_SEC,
+		ktime_to_timespec(timestamp).tv_sec);
+	input_event(lis->input_dev, EV_SYN, SYN_TIME_NSEC,
+		ktime_to_timespec(timestamp).tv_nsec);
+	input_event(lis->input_dev, EV_MSC, MSC_GESTURE, 1);
+	input_sync(lis->input_dev);
+}
+#endif
+
 static int lis3dh_enable_pull(struct lis3dh_data *lis)
 {
+#ifdef CONFIG_CM13_KERNEL
+	if (lis->mode & MODE_ACCEL)
+		return 0;
+#endif
+
 	schedule_delayed_work(&lis->input_work,
 				msecs_to_jiffies(lis->pdata->poll_interval));
 	return 0;
@@ -460,9 +636,47 @@ static int lis3dh_set_threshold(struct lis3dh_data *lis, u8 config,
 
 static int lis3dh_enable_irq(struct lis3dh_data *lis)
 {
+#ifdef CONFIG_CM13_KERNEL
+	if (!lis->irq_enabled) {
+		lis->irq_enabled = 1;
+		enable_irq(lis->irq);
+	}
+
+	return 0;
+}
+
+static int lis3dh_configure_rotate(struct lis3dh_data *lis)
+{
+#endif
 	int err;
 	u8 buf[2];
+	
+#ifdef CONFIG_CM13_KERNEL
+	buf[0] = CTRL_REG2;
+	buf[1] = 0;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+	lis->resume_state[1] = buf[1];
 
+	buf[0] = CTRL_REG4;
+	err = lis3dh_i2c_read(lis, buf, 1);
+	if (err < 0)
+		return err;
+	buf[1] = (buf[0] & ~G_16G) | BLK_UPDATE;
+	buf[0] = CTRL_REG4;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+#else
+	if (lis->mode & MODE_ROTATE)
+		return 0;
+#endif
+
+#ifdef CONFIG_CM13_KENREL
+	lis->resume_state[3] = buf[1];
+	lis->shift_adj = SHIFT_ADJ_2G;
+#else
 	if (atomic_read(&lis->enabled)) {
 		buf[0] = CTRL_REG4;
 		err = lis3dh_i2c_read(lis, buf, 1);
@@ -473,7 +687,29 @@ static int lis3dh_enable_irq(struct lis3dh_data *lis)
 		err = lis3dh_i2c_write(lis, buf, 1);
 		if (err < 0)
 			return err;
+#endif
+		
+#ifdef CONFIG_CM13_KERNEL
+	buf[0] = CTRL_REG5;
+	err = lis3dh_i2c_read(lis, buf, 1);
+	if (err < 0)
+		return err;
+	buf[1] = (buf[0] | 0x4);
+	buf[0] = CTRL_REG5;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+#else
+		lis->resume_state[3] = buf[1];
+		lis->shift_adj = SHIFT_ADJ_2G;
+#endif
 
+#ifdef CONFIG_CM13_KERNEL
+	err = lis3dh_set_threshold(lis, lis->irq_config[0],
+			INT_CFG_INIT_THRESHOLD);
+	if (err < 0)
+		return err;
+#else
 		buf[0] = CTRL_REG5;
 		err = lis3dh_i2c_read(lis, buf, 1);
 		if (err < 0)
@@ -489,14 +725,55 @@ static int lis3dh_enable_irq(struct lis3dh_data *lis)
 		if (err < 0)
 			return err;
 
-		lis->resume_state[3] = buf[1];
-		lis->shift_adj = SHIFT_ADJ_2G;
 	}
 
 	enable_irq(lis->irq);
+#endif
 
 	return 0;
 }
+
+#ifdef CONFIG_CM13_KERNEL
+static int lis3dh_configure_movement(struct lis3dh_data *lis)
+{
+ 	int err;
+	u8 buf[2];
+  
+	buf[0] = CTRL_REG2;
+	buf[1] = HP_CONFIG_MOVEMENT;
+ 	err = lis3dh_i2c_write(lis, buf, 1);
+ 	if (err < 0)
+		return err;
+	lis->resume_state[1] = buf[1];
+
+	buf[0] = CTRL_REG4;
+	err = lis3dh_i2c_read(lis, buf, 1);
+	if (err < 0)
+		return err;
+	buf[1] = (buf[0] & ~G_16G) | BLK_UPDATE;
+	buf[0] = CTRL_REG4;
+	err = lis3dh_i2c_write(lis, buf, 1);
+	if (err < 0)
+		return err;
+
+	lis->resume_state[3] = buf[1];
+	lis->shift_adj = SHIFT_ADJ_2G;
+
+	err = lis3dh_write_config(lis, lis->resume_state[0]);
+	if (err < 0)
+		return err;
+
+	err = lis3dh_set_threshold(lis, INT1_CFG_MOVEMENT, INT1_THS_MOVEMENT);
+	if (err < 0)
+		return err;
+
+	/* Reset internal high-pass filter */
+	buf[0] = CTRL_REG2;
+	err = lis3dh_i2c_read(lis, buf, 1);
+
+	return 0;
+}
+#endif
 
 static int lis3dh_enable(struct lis3dh_data *lis)
 {
@@ -511,21 +788,49 @@ static int lis3dh_enable(struct lis3dh_data *lis)
 		}
 	}
 
+#ifdef CONFIG_CM13_KERNEL
+	if (lis->update_odr) {
+		err = lis3dh_write_config(lis, lis->resume_state[0]);
+		if (err < 0) {
+			pr_err("%s: failed to restore ODR: %d\n",
+				__func__, err);
+		}
+		lis->update_odr = 0;
+	}
+#endif
+
 	return 0;
 }
 
 static int lis3dh_disable_irq(struct lis3dh_data *lis)
 {
+#ifdef CONFIG_CM13_KERNEL
+	int err = 0;
+#else
 	int err;
+#endif
 
+#ifdef CONFIG_CM13_KERNEL
+	if (lis->irq_enabled) {
+		lis->irq_enabled = 0;
+		disable_irq_nosync(lis->irq);
+		err = lis3dh_update_g_range(lis, lis->pdata->g_range);
+ 	}
+#else
 	disable_irq_nosync(lis->irq);
 	err = lis3dh_update_g_range(lis, lis->pdata->g_range);
+#endif
 
 	return err;
 }
 
 static int lis3dh_disable_pull(struct lis3dh_data *lis)
 {
+#ifdef CONFIG_CM13_KERNEL
+	if (!(lis->mode & MODE_ACCEL))
+		return 0;
+#endif
+
 	cancel_delayed_work_sync(&lis->input_work);
 	return 0;
 }
@@ -550,6 +855,68 @@ static int lis3dh_misc_open(struct inode *inode, struct file *file)
 
 	return 0;
 }
+
+#ifdef CONFIG_CM13_KERNEL
+static int lis3dh_set_mode(struct lis3dh_data *lis, int mode)
+{
+	if (lis->mode == mode)
+		return 0;
+		
+	if ((mode & MODE_ROTATE) && (mode & MODE_MOVEMENT))
+		/* ROTATE and MOVEMENT are mutually exclusive */
+		return -EINVAL;
+
+	switch (mode) {
+	case MODE_OFF:
+		lis3dh_disable_irq(lis);
+		lis3dh_disable_pull(lis);
+		lis3dh_disable(lis);
+		break;
+
+	case MODE_ACCEL:
+		lis3dh_enable(lis);
+		lis3dh_disable_irq(lis);
+		lis3dh_enable_pull(lis);
+		break;
+
+	case MODE_ROTATE:
+		lis3dh_enable(lis);
+		lis3dh_disable_pull(lis);
+		lis3dh_enable_irq(lis);
+		is3dh_configure_rotate(lis);
+		break;
+
+	case MODE_MOVEMENT:
+		lis3dh_enable(lis);
+		lis3dh_disable_pull(lis);
+		lis3dh_enable_irq(lis);
+		lis3dh_configure_movement(lis);
+		break;
+
+	case MODE_ACCEL_ROTATE:
+		lis3dh_enable(lis);
+		lis3dh_enable_irq(lis);
+		lis3dh_enable_pull(lis);
+		is3dh_configure_rotate(lis);
+		break;
+
+	case MODE_ACCEL_MOVEMENT:
+		lis3dh_enable(lis);
+		lis3dh_enable_irq(lis);
+		lis3dh_enable_pull(lis);
+		lis3dh_configure_movement(lis);
+		break;
+
+	default:
+		dev_err(&lis->client->dev, "unknown mode: %d\n", mode);
+		return -EINVAL;
+	}
+
+	lis->mode = mode;
+
+	return 0;
+}
+#endif
 
 static long lis3dh_misc_ioctl(struct file *file, unsigned int cmd,
 		unsigned long arg)
@@ -585,6 +952,7 @@ static long lis3dh_misc_ioctl(struct file *file, unsigned int cmd,
 	case LIS3DH_IOCTL_SET_ENABLE:
 		if (copy_from_user(&interval, argp, sizeof(interval)))
 			return -EFAULT;
+#ifndef CONFIG_CM13_KERNEL
 		if (interval < MODE_OFF || interval > MODE_ALL)
 			return -EINVAL;
 
@@ -627,6 +995,11 @@ static long lis3dh_misc_ioctl(struct file *file, unsigned int cmd,
 			break;
 		}
 			lis->mode = interval;
+#else
+		err = lis3dh_set_mode(lis, interval);
+		if (err < 0)
+			return err;	
+#endif
 		break;
 
 	case LIS3DH_IOCTL_GET_ENABLE:
@@ -690,13 +1063,21 @@ void lis3dh_input_close(struct input_dev *dev)
 }
 #endif
 
+#ifdef CONFIG_CM13_KERNEL
+static void lis3dh_irq_handle_rotation(struct lis3dh_data *lis, int irq_data)
+#else
 static void lis3dh_irq_work(struct work_struct *work)
+#endif
 {
+#ifdef CONFIG_CM13_KERNEL
+	int flat = TYPE_UNKNOWN;
+#else
 	int irq_data = 0, flat = TYPE_UNKNOWN;
 	struct lis3dh_data *lis = container_of(work, struct lis3dh_data,
 						  irq_work);
 	mutex_lock(&lis->lock);
 	irq_data = lis3dh_read_int_data(lis);
+#endif
 	switch (irq_data & INT_4D_BITS) {
 	case INT_XL_BIT:
 		flat = TYPE_PORTRAIT;
@@ -716,9 +1097,30 @@ static void lis3dh_irq_work(struct work_struct *work)
 
 	lis3dh_set_threshold(lis, INT_CFG_XYZ, lis->irq_config[1]);
 	lis3dh_report_rotate(lis, flat);
-	mutex_unlock(&lis->lock);
 
+#ifdef CONFIG_CM13_KERNEL
 }
+
+static void lis3dh_irq_work(struct work_struct *work)
+{
+	int irq_data = 0;
+	struct lis3dh_data *lis = container_of(work, struct lis3dh_data,
+						  irq_work);
+	mutex_lock(&lis->lock);
+	irq_data = lis3dh_read_int_data(lis);
+
+	if (lis->mode & MODE_ROTATE)
+		lis3dh_irq_handle_rotation(lis, irq_data);
+	else if (lis->mode & MODE_MOVEMENT)
+		lis3dh_report_movement(lis);
+	mutex_unlock(&lis->lock);
+	
+}
+#else
+	mutex_unlock(&lis->lock);
+	
+}
+#endif
 
 static irqreturn_t lis3dh_isr(int irq, void *data)
 {
@@ -764,6 +1166,9 @@ static int lis3dh_input_init(struct lis3dh_data *lis)
 	input_set_abs_params(lis->input_dev, ABS_Y, -G_MAX, G_MAX, FUZZ, FLAT);
 	input_set_abs_params(lis->input_dev, ABS_Z, -G_MAX, G_MAX, FUZZ, FLAT);
 	input_set_capability(lis->input_dev, EV_MSC, MSC_RAW);
+#ifdef CONFIG_CM13_KERNEL
+	input_set_capability(lis->input_dev, EV_MSC, MSC_GESTURE);
+#endif
 
 	lis->input_dev->name = "accelerometer";
 
@@ -789,6 +1194,98 @@ static void lis3dh_input_cleanup(struct lis3dh_data *lis)
 	input_free_device(lis->input_dev);
 }
 
+#ifdef CONFIG_CM13_KERNEL
+#ifdef CONFIG_PM
+static int lis3dh_resume(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct lis3dh_data *lis = i2c_get_clientdata(client);
+	int ret = 0;
+
+	mutex_lock(&lis->lock);
+
+	/* The sensor is already enabled */
+	if (lis->mode & MODE_MOVEMENT) {
+		ret = disable_irq_wake(lis->irq);
+		if (ret < 0) {
+			dev_err(&lis->client->dev,
+				"Could not disable IRQ wake: %d\n", ret);
+			goto err;
+		}
+		if (lis->mode_before_suspend != lis->mode) {
+			ret = lis3dh_set_mode(lis, lis->mode_before_suspend);
+			if (ret < 0) {
+				dev_err(&lis->client->dev,
+					"Could not set mode to %d\n",
+					lis->mode_before_suspend);
+				goto err;
+			}
+		}
+	} else if (lis->on_before_suspend) {
+		ret = lis3dh_enable(lis);
+		if (ret < 0) {
+			goto err;
+		}		
+	}
+
+	if (lis->on_before_suspend) {
+		err = lis3dh_enable(lis);
+		if (err < 0)
+			dev_err(&lis->client->dev,
+				"resume failure\n");
+	}
+
+err:
+	mutex_unlock(&lis->lock);
+
+	return ret;
+}
+
+static int lis3dh_suspend(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct lis3dh_data *lis = i2c_get_clientdata(client);
+	int ret = 0;
+
+	mutex_lock(&lis->lock);
+
+	/* Keep the sensor enabled for movement detection */
+	if (lis->mode & MODE_MOVEMENT) {
+		ret = enable_irq_wake(lis->irq);
+		if (ret < 0) {
+			dev_err(&lis->client->dev,
+				"Could not enable IRQ wake: %d\n", ret);
+			goto err;
+		}
+		lis->mode_before_suspend = lis->mode;
+		if (lis->mode != MODE_MOVEMENT) {
+			ret = lis3dh_set_mode(lis, MODE_MOVEMENT);
+			if (ret < 0) {
+				dev_err(&lis->client->dev,
+					"could not set mode to %d\n",
+					MODE_MOVEMENT);
+				goto err;
+			}
+		}
+	} else {
+		lis->on_before_suspend =
+			atomic_read(&lis->enabled);
+		if (lis->on_before_suspend) {
+			ret = lis3dh_disable(lis);
+			if (ret < 0) {
+				dev_err(&lis->client->dev, "suspend failure\n");
+				goto err;
+			}
+		}
+	}
+
+err:
+	mutex_unlock(&lis->lock);
+
+	return ret;
+}
+#endif
+#else
 static int lis3dh_resume(struct lis3dh_data *lis)
 {
 	int err;
@@ -816,7 +1313,11 @@ static int lis3dh_suspend(struct lis3dh_data *lis)
 
 	return 0;
 }
+#endif
 
+#ifdef CONFIG_CM13_KERNEL
+static SIMPLE_DEV_PM_OPS(lis3dh_pm, lis3dh_suspend, lis3dh_resume);
+#else
 static int lis3dh_pm_event(struct notifier_block *this,
 	unsigned long event, void *ptr)
 {
@@ -838,6 +1339,7 @@ static int lis3dh_pm_event(struct notifier_block *this,
 
 	return NOTIFY_DONE;
 }
+#endif
 
 #ifdef CONFIG_OF
 static struct lis3dh_platform_data *
@@ -1010,12 +1512,14 @@ static int lis3dh_probe(struct i2c_client *client,
 
 	lis3dh_device_power_off(lis);
 
+#ifndef CONFIG_CM13_KERNEL
 	lis->pm_notifier.notifier_call = lis3dh_pm_event;
 	err = register_pm_notifier(&lis->pm_notifier);
 	if (err < 0) {
 		pr_err("%s:Register_pm_notifier failed: %d\n", __func__, err);
 		goto err5;
 	}
+#endif
 
 	/* As default, do not report information */
 	atomic_set(&lis->enabled, 0);
@@ -1026,8 +1530,10 @@ static int lis3dh_probe(struct i2c_client *client,
 
 	return 0;
 
+#ifndef CONFIG_CM13_KERNEL
 err5:
 	misc_deregister(&lis3dh_misc_device);
+#endif
 err4:
 	lis3dh_input_cleanup(lis);
 err3:
@@ -1055,7 +1561,9 @@ static int __devexit lis3dh_remove(struct i2c_client *client)
 		regulator_put(lis->vdd);
 	}
 
+#ifndef CONFIG_CM13_KERNEL
 	unregister_pm_notifier(&lis->pm_notifier);
+#endif
 	misc_deregister(&lis3dh_misc_device);
 	lis3dh_input_cleanup(lis);
 	lis3dh_device_power_off(lis);
@@ -1088,6 +1596,9 @@ static struct i2c_driver lis3dh_driver = {
 	.probe = lis3dh_probe,
 	.remove = __devexit_p(lis3dh_remove),
 	.id_table = lis3dh_id,
+#ifdef CONFIG_CM13_KERNEL
+	.pm = &lis3dh_pm,
+#endif
 };
 
 static int __init lis3dh_init(void)
