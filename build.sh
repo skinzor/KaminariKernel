@@ -15,14 +15,14 @@ export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building KaminariKernel...";
+echo -e "Building KaminariKernel (IDCrisis version)...\n";
 
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
 2. Moto G (1st gen, LTE) (peregrine)
-3. Moto G (2nd gen, GSM/LTE) (titan/thea)";
+3. Moto G (2nd gen, GSM/LTE) (titan/thea) ";
 
-while read -p "$devicestr " dev; do
+while read -p "$devicestr" dev; do
 	case $dev in
 		"1")
 			echo -e "Selected device: Moto G GSM/CDMA (falcon)\n"
@@ -77,7 +77,7 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 			"" | " " )
 				echo -e "No release number specified. Assuming test/nightly build.\n";
 				export LOCALVERSION="-Kaminari-Testing";
-				version=`date "+%Y%m%d.%H%M%S"`;
+				version=`date --utc "+%Y%m%d.%H%M%S"`;
 				break;;
 			*)
 				echo -e "Localversion set as: $rel\n";
@@ -108,7 +108,7 @@ while read -p "How many parallel jobs do you want to use? (Default is 4.) " numj
 	break;
 done;
 	
-echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`";
+echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 			
 # Build the kernel
 make "$defconfig"_defconfig;
@@ -120,11 +120,12 @@ else
 fi;
 
 # Tell when the build was finished
-echo -e "Build finished on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
+echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 
-# Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_$name ]; then 
+# Make the zip and out dirs if they don't exist
+if [ ! -d ../Zip_CustomMM_$name ] || [ ! -d ../Out_CustomMM_$name ]; then 
 	mkdir ../Zip_CustomMM_$name;
+	mkdir ../Out_CustomMM_$name;
 fi;
 
 # Make the modules dir if it doesn't exist
@@ -149,7 +150,7 @@ ls -l ../Zip_CustomMM_$name/zImage-dtb;
 cd ../Zip_CustomMM_$name;
 
 # Set zip name
-zipname="KaminariCM13_"$version"_"$name;
+zipname="Kaminari_"$version"_"$name;
 
 # Make the zip
 echo -e "Version: $version" > version.txt;
