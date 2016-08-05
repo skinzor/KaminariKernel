@@ -3,7 +3,7 @@
 # Variables
 sequence=`seq 1 100`;
 numjobs=0;
-this="KaminariKernel";
+this="KaminariCM";
 
 # Set up the cross-compiler
 export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
@@ -15,7 +15,7 @@ export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 clear;
 
 # Output some basic info
-echo -e "Building KaminariKernel...";
+echo -e "Building KaminariKernel (CyanogenMod version)...";
 
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
@@ -64,13 +64,13 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 		for i in $sequence; do
 			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
 				echo -e "Release number: $rel\n";
-				export LOCALVERSION="-Kaminari-$rel";
+				export LOCALVERSION="-KaminariCM-$rel";
 				version=$rel;
 			fi;
 		done;
 	elif [[ `echo $rel | gawk --re-interval "/^v/"` ]]; then
 		echo -e "Version number: $rel\n";
-		export LOCALVERSION="-Kaminari-$rel";
+		export LOCALVERSION="-KaminariCM-$rel";
 		version=$rel;
 	else
 		case $rel in
@@ -81,7 +81,7 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 				break;;
 			*)
 				echo -e "Localversion set as: $rel\n";
-				export LOCALVERSION="-Kaminari-$rel";
+				export LOCALVERSION="-KaminariCM-$rel";
 				version=$rel;
 				break;;
 		esac;
@@ -111,7 +111,7 @@ done;
 echo -e "Build started on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`";
 			
 # Build the kernel
-make "$defconfig"_defconfig;
+make cm/"$defconfig"_defconfig;
 
 if [ "$jobs" != "0" ]; then
 	make -j$jobs;
@@ -123,35 +123,19 @@ fi;
 echo -e "Build finished on: `date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n";
 
 # Make the zip dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_$name ]; then 
-	mkdir ../Zip_CustomMM_$name;
+if [ ! -d ../Zip_Cm13_$name ]; then 
+	mkdir ../Zip_Cm13_$name;
 fi;
 
-# Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_$name/modules ]; then mkdir ../Zip_CustomMM_$name/modules; fi;
-
-# Make the release dir if it doesn't exist
-if [ ! -d ../Out_CustomMM_$name ]; then mkdir ../Out_CustomMM_$name; fi;
-
-# Remove previous modules
-if [ -d ../Zip_CustomMM_$name/modules ]; then rm -rf ../Zip_CustomMM_$name/modules/*; fi;
-
-# Make wi-fi module dir
-if [ ! -d ../Zip_CustomMM_$name/modules/pronto ]; then mkdir ../Zip_CustomMM_$name/modules/pronto; fi;
-
-# Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_$name/modules/ \;
-mv ../Zip_CustomMM_$name/modules/wlan.ko ../Zip_CustomMM_$name/modules/pronto/pronto_wlan.ko;
-
 # Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_$name/;
-ls -l ../Zip_CustomMM_$name/zImage-dtb;
-cd ../Zip_CustomMM_$name;
+cp -f arch/arm/boot/zImage-dtb ../Zip_Cm13_$name/;
+ls -l ../Zip_Cm13_$name/zImage-dtb;
+cd ../Zip_Cm13_$name;
 
 # Set zip name
-zipname="KaminariCM13_"$version"_"$name;
+zipname="Kaminari_"$version"_"$name;
 
 # Make the zip
 echo -e "Version: $version" > version.txt;
 zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_CustomMM_$name;
+mv $zipname.zip ../Out_Cm13_$name;
