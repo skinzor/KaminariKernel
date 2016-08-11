@@ -14,7 +14,7 @@ export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 # Clear the screen, bud!
 clear;
 
-# Output some basic info
+# Let's start...
 echo -e "Building KaminariKernel (IDCrisis version)...\n";
 
 devicestr="Which device do you want to build for?
@@ -22,29 +22,32 @@ devicestr="Which device do you want to build for?
 2. Moto G (1st gen, LTE) (peregrine)
 3. Moto G (2nd gen, GSM/LTE) (titan/thea) ";
 
+zipstr="Which installation type do you want to use?
+1. AnyKernel (recommended)
+2. Classic (boot.img) (Use if you have problems with AK) ";
+
+# Select which device the kernel should be built for
 while read -p "$devicestr" dev; do
 	case $dev in
 		"1")
 			echo -e "Selected device: Moto G GSM/CDMA (falcon)\n"
-			defconfig="falcon";
-			name="Falcon";
+			device="falcon";
 			break;;
 		"2")
 			echo -e "Selected device: Moto G LTE (peregrine)\n"
-			defconfig="peregrine";
-			name="Peregrine";
+			device="peregrine";
 			break;;
 		"3")
 			echo -e "Selected device: Moto G 2nd Gen (GSM/LTE) (titan/thea)\n"
-			defconfig="titan";
-			name="Titan";
+			device="titan";
 			break;;
 		*)
-			echo -e "Invalid option. Try again.\n";;
+			echo -e "\nInvalid option. Try again.\n";;
 	esac;
 done;
 		
-
+# Clean everything via `make mrproper`.
+# Recommended if there were extensive changes to the source code.
 while read -p "Do you want to clean everything (generated files, etc.)? (Y/N) " clean; do
 	case $clean in
 		"y" | "Y" | "yes" | "Yes")
@@ -59,6 +62,8 @@ while read -p "Do you want to clean everything (generated files, etc.)? (Y/N) " 
 	esac;
 done;
 
+# (Optional) Specify a release number.
+# A "Testing" label will be used if this is left blank.
 while read -p "Do you want to specify a release/version number? (Just press enter if you don't.) " rel; do
 	if [[ `echo $rel | gawk --re-interval "/^R/"` != "" ]]; then
 		for i in $sequence; do
@@ -89,6 +94,9 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 	break;
 done;
 
+# Select how many parallel CPU jobs should be used.
+# The ideal number is 2x the number of CPU cores.
+# E.g. for a quad-core CPU, the ideal would be 8 jobs, and so on.
 while read -p "How many parallel jobs do you want to use? (Default is 4.) " numjobs; do
 	for i in $sequence; do
 		if [[ $numjobs = $i ]]; then
@@ -107,13 +115,34 @@ while read -p "How many parallel jobs do you want to use? (Default is 4.) " numj
 	done;
 	break;
 done;
+
+# Select which installation type will be used
+while read -p "$zipstr" zipmode; do
+	case $zipmode in
+		"1")
+			zipmode="ak";
+			echo -e "Selected installation type: AnyKernel\n";
+			break;;
+		"2")
+			zipmode="classic";
+			echo -e "Selected installation type: Classic\n";			
+			break;;
+		*)
+			echo -e "\nInvalid option. Try again.\n";;
+	esac;
+done;
 	
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 			
+# (Classic mode only) Remove all DTBs to avoid conflicts
+if [[ $zipmode = "classic" ]]; then
+	rm -rf arch/arm/boot/*.dtb;
+fi;
+			
 # Build the kernel
-make "$defconfig"_defconfig;
+make "$device"_defconfig;
 
-if [ "$jobs" != "0" ]; then
+if [[ $jobs != "0" ]]; then
 	make -j$jobs;
 else
 	make;
@@ -122,37 +151,80 @@ fi;
 # Tell when the build was finished
 echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 
+# Define directories (zip, out)
+if [[ $zipmode = "ak" ]]; then
+	maindir=$HOME/Kernel/Zip_CustomIdC_AK;
+	outdir=$HOME/Kernel/Out_CustomIdC_AK;
+else
+	maindir=$HOME/Kernel/Zip_CustomIdC_BootImg;
+	outdir=$HOME/Kernel/Out_CustomIdC_BootImg;
+fi;
+devicedir=$maindir/$device;
+
 # Make the zip and out dirs if they don't exist
-if [ ! -d ../Zip_CustomMM_$name ] || [ ! -d ../Out_CustomMM_$name ]; then 
-	mkdir ../Zip_CustomMM_$name;
-	mkdir ../Out_CustomMM_$name;
+if [ ! -d $maindir ] || [ ! -d $outdir ]; then
+	mkdir -p $maindir && mkdir -p $outdir;
 fi;
 
-# Make the modules dir if it doesn't exist
-if [ ! -d ../Zip_CustomMM_$name/modules ]; then mkdir ../Zip_CustomMM_$name/modules; fi;
+# Make the modules dir if it doesn't exist.
+# Also remove any previously built modules
+if [[ $zipmode = "ak" ]]; then
+	[ -d $devicedir/modules ] || mkdir -p $devicedir/modules;
+	[ -d $devicedir/modules ] && rm -rf $devicedir/modules/*;
+	[ -d $devicedir/modules/pronto ] || mkdir -p $devicedir/modules/pronto;
+	moduledir=$devicedir/modules;
+else
+	[ -d $devicedir/system/lib/modules ] || mkdir -p $devicedir/system/lib/modules;
+	[ -d $devicedir/system/lib/modules ] && rm -rf $devicedir/system/lib/modules/*;	
+	[ -d $devicedir/system/lib/modules/pronto ] || mkdir -p $devicedir/system/lib/modules/pronto;
+	moduledir=$devicedir/system/lib/modules;
+fi;
 
-# Make the release dir if it doesn't exist
-if [ ! -d ../Out_CustomMM_$name ]; then mkdir ../Out_CustomMM_$name; fi;
+# Copy the modules
+echo -e "Copying kernel modules...\n";
+for mod in `find . -type f -name "*.ko"`; do
+	cp -f $mod $moduledir/;
+done;
 
-# Remove previous modules
-if [ -d ../Zip_CustomMM_$name/modules ]; then rm -rf ../Zip_CustomMM_$name/modules/*; fi;
+# (Experimental - AnyKernel):
+# Use zImage and build a dt.img (the same way as the "classic" installation mode does).
+# The difference here is that we won't build a boot.img right now. Instead, the image will
+# be rebuilt by the phone itself, whilst the zip is being flashed.
+echo -e "Generating dt.img...\n"
+./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
+# Only create a boot.img if we're using classic mode.
+if [[ $zipmode = "classic" ]]; then
+	echo -e "Creating boot.img...\n";
+	./bootimgtools/mkbootimg --kernel arch/arm/boot/zImage --ramdisk $maindir/packed_ramdisks/ramdisk_"$device".cpio.gz --board "" --base 0x00000000 \
+	--kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 \
+	--cmdline "console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M" \
+	--pagesize 2048 --dt /tmp/dt.img --output $devicedir/boot.img;
+else
+	echo -e "Copying zImage & dt.img...\n";
+	cp -f /tmp/dt.img $devicedir/;
+	cp -f arch/arm/boot/zImage $devicedir/;
+fi;
 
-# Make wi-fi module dir
-if [ ! -d ../Zip_CustomMM_$name/modules/pronto ]; then mkdir ../Zip_CustomMM_$name/modules/pronto; fi;
-
-# Modules
-find ./ -type f -name '*.ko' -exec cp -f {} ../Zip_CustomMM_$name/modules/ \;
-mv ../Zip_CustomMM_$name/modules/wlan.ko ../Zip_CustomMM_$name/modules/pronto/pronto_wlan.ko;
-
-# Copy zImage-dtb
-cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_$name/;
-ls -l ../Zip_CustomMM_$name/zImage-dtb;
-cd ../Zip_CustomMM_$name;
+# (Disabled) Copy zImage-dtb
+# cp -f arch/arm/boot/zImage-dtb ../Zip_CustomMM_$name/;
+# ls -l ../Zip_CustomMM_$name/zImage-dtb;
+# cd ../Zip_CustomMM_$name;
 
 # Set zip name
-zipname="Kaminari_"$version"_"$name;
+zipname="Kaminari_"$version"_"`echo "${device^}"`;
 
-# Make the zip
-echo -e "Version: $version" > version.txt;
-zip -r9 $zipname.zip * > /dev/null;
-mv $zipname.zip ../Out_CustomMM_$name;
+# Make the zip & finish
+case $device in
+	"falcon")
+		echo -e "Device: Moto G 1st Gen (falcon)" > $devicedir/device.txt;;
+	"peregrine")
+		echo -e "Device: Moto G 1st Gen w/ LTE (peregrine)" > $devicedir/device.txt;;
+	"titan")
+		echo -e "Device: Moto G 2nd Gen (titan/thea)" > $devicedir/device.txt;;
+esac;
+echo -e "Version: $version" > $devicedir/version.txt;
+cd $maindir/common;
+zip -r9 $outdir/$zipname.zip . > /dev/null;
+cd $devicedir;
+zip -r9 $outdir/$zipname.zip * > /dev/null;
+echo -e "\nDone!\n";
