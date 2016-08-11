@@ -185,6 +185,9 @@ echo -e "Copying kernel modules...\n";
 for mod in `find . -type f -name "*.ko"`; do
 	cp -f $mod $moduledir/;
 done;
+# Move wi-fi module (wlan.ko) to modules/pronto & rename it to pronto_wlan.ko. This is very important!!
+# A symlink to it (named wlan.ko) will be created at installation time.
+mv $moduledir/wlan.ko $moduledir/pronto/pronto_wlan.ko;
 
 # (Experimental - AnyKernel):
 # Use zImage and build a dt.img (the same way as the "classic" installation mode does).
