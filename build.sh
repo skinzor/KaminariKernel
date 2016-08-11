@@ -154,10 +154,10 @@ echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`da
 # Define directories (zip, out)
 if [[ $zipmode = "ak" ]]; then
 	maindir=$HOME/Kernel/Zip_CustomIdC_AK;
-	outdir=$HOME/Kernel/Out_CustomIdC_AK;
+	outdir=$HOME/Kernel/Out_CustomIdC_AK/$device;
 else
 	maindir=$HOME/Kernel/Zip_CustomIdC_BootImg;
-	outdir=$HOME/Kernel/Out_CustomIdC_BootImg;
+	outdir=$HOME/Kernel/Out_CustomIdC_BootImg/$device;
 fi;
 devicedir=$maindir/$device;
 
