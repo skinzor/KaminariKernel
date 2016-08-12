@@ -70,7 +70,7 @@ done;
 while read -p "Do you want to specify a release/version number? (Just press enter if you don't.) " rel; do
 	if [[ `echo $rel | gawk --re-interval "/^R/"` != "" ]]; then
 		for i in $sequence; do
-			if [ `echo $rel | gawk --re-interval "/$i/"` ]; then
+			if [ `echo $rel | gawk --re-interval "/^R$i/"` ]; then
 				echo -e "Release number: $rel\n";
 				export LOCALVERSION="-Kaminari-$rel";
 				version=$rel;
