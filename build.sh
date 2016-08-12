@@ -187,10 +187,8 @@ done;
 # Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 			
-# (Classic mode only) Remove all DTBs to avoid conflicts
-if [[ $zipmode = "classic" ]]; then
-	rm -rf arch/arm/boot/*.dtb;
-fi;
+# Remove all DTBs to avoid conflicts
+rm -rf arch/arm/boot/*.dtb;
 			
 # Build the kernel
 if [[ $rom = "stock" ]]; then
