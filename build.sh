@@ -215,8 +215,8 @@ fi;
 if [[ -f arch/arm/boot/zImage ]]; then
 	echo -e "Code compilation finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 	maketime=`date +"%s"`;
-	makediff=`expr $maketime - $starttime`;
-	echo -e "Code compilation took: `expr makediff / 60` minute(s) and `expr makediff % 60` second(s).\n";
+	makediff=$(($maketime - $starttime));
+	echo -e "Code compilation took: $(($makediff / 60)) minute(s) and $(($makediff % 60)) second(s).\n";
 else
 	echo -e "zImage not found. Kernel build failed. Aborting.\n";
 	exit 1;
@@ -286,7 +286,6 @@ if [[ $rom = "stock" ]]; then
 else
 	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 fi;
-echo -e "\n";
 
 # Only create a boot.img if we're using classic mode.
 if [[ $zipmode = "classic" ]]; then
@@ -335,6 +334,6 @@ echo -e "Done!"
 # Tell exactly when the build finished
 echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 finishtime=`date +"%s"`;
-finishdiff=`expr $finishtime - $starttime`;
-echo -e "This build took: `expr finishdiff / 60` minute(s) and `expr finishdiff % 60` second(s).\n";
+finishdiff=$(($finishtime - $starttime));
+echo -e "This build took: $(($finishdiff / 60)) minute(s) and $(($finishdiff % 60)) second(s).\n";
 
