@@ -25,6 +25,9 @@ devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
 2. Moto G (1st gen, LTE) (peregrine) ";
 
+selstr="Do you want to force SELinux to stay in Permissive mode?
+Only say Yes if you're aware of the possible security risks this may introduce! (Y/N) ";
+
 # Select which device the kernel should be built for
 while read -p "$devicestr" dev; do
 	case $dev in
