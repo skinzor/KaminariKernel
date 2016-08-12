@@ -84,6 +84,22 @@ while read -p "How many parallel jobs do you want to use? (Default is 4.) " numj
 	done;
 	break;
 done;
+
+# Determine if we should force SELinux permissive mode
+while read -p "$selstr" forceperm; do
+	case $forceperm in
+		"y" | "Y" | "yes" | "Yes")
+			echo -e "${bold}WARNING: SELinux will stay in Permissive mode at all times. You won't be able to change it to Enforcing.\nBe careful.\n${normal}";
+			forceperm="Y";
+			break;;
+		"n" | "N" | "no" | "No" | "" | " ")
+			echo -e "SELinux will remain configurable (Android will always default it to Enforcing).\n";
+			forceperm="N";			
+			break;;
+		*)
+			echo -e "\nInvalid option. Try again.\n";;
+	esac;
+done;
 	
 # Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
@@ -93,7 +109,11 @@ starttime=`date +"%s"`;
 rm -rf arch/arm/boot/*.dtb;
 			
 # Build the kernel
-make "$device"_defconfig;
+if [[ $forceperm = "Y" ]]; then
+	make "$device"_perm_defconfig;
+else
+	make "$device"_defconfig;
+fi;
 
 if [[ $jobs != "0" ]]; then
 	make -j$jobs;
@@ -123,10 +143,10 @@ fi;
 
 # Make the modules dir if it doesn't exist.
 # Remove any previously built modules as well.
-[ -d $devicedir/modules ] || mkdir -p $devicedir/modules;
-[ -d $devicedir/modules ] && rm -rf $devicedir/modules/*;
-[ -d $devicedir/modules/pronto ] || mkdir -p $devicedir/modules/pronto;
-moduledir=$devicedir/modules;
+[ -d $devicedir/system/lib/modules ] || mkdir -p $devicedir/system/lib/modules;
+[ -d $devicedir/system/lib/modules ] && rm -rf $devicedir/system/lib/modules/*;
+[ -d $devicedir/system/lib/modules/pronto ] || mkdir -p $devicedir/system/lib/modules/pronto;
+moduledir=$devicedir/system/lib/modules;
 # Copy the modules
 echo -e "Copying kernel modules...\n";
 for mod in `find . -type f -name "*.ko"`; do
@@ -149,7 +169,11 @@ echo -e "Creating boot.img...";
 	--pagesize 2048 --dt /tmp/dt.img --output $devicedir/boot.img;
 
 # Set the zip's name
-zipname="IdCrisisStock_"$version"_"`echo "${device^}"`;
+if [[ $forceperm = "Y" ]]; then
+	zipname="IdCrisisStock_"$version"_"`echo "${device^}"`"_Permissive";
+else
+	zipname="IdCrisisStock_"$version"_"`echo "${device^}"`;
+fi;
 
 # Zip the stuff we need & finish
 echo -e "Creating flashable ZIP...\n";
