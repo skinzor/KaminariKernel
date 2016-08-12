@@ -184,7 +184,13 @@ while read -p "$selstr" forceperm; do
 	esac;
 done;
 	
+# Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
+# Do some time calculations
+starttime=`date +"%H%M%S"`;
+starthr=`echo $starttime | cut -c1-2`;
+startmin=`echo $starttime | cut -c3-4`;
+startsec=`echo $starttime | cut -c5-6`;
 			
 # (Classic mode only) Remove all DTBs to avoid conflicts
 if [[ $zipmode = "classic" ]]; then
@@ -211,9 +217,6 @@ else
 		make;
 	fi;
 fi;
-
-# Tell when the build was finished
-echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 
 # Define directories (zip, out)
 if [[ $rom = "stock" ]]; then
@@ -275,20 +278,20 @@ fi;
 echo -e "Creating dt.img...\n"
 # Use dtbTool if building for the stock ROM; dtbToolCM if building for AOSP.
 if [[ $rom = "stock" ]]; then
-	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
+	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/ > /dev/null;
 else
-	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
+	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/ > /dev/null;
 fi;
 
 # Only create a boot.img if we're using classic mode.
 if [[ $zipmode = "classic" ]]; then
-	echo -e "Creating boot.img...\n";
+	echo -e "Creating boot.img...";
 	./bootimgtools/mkbootimg --kernel arch/arm/boot/zImage --ramdisk $maindir/packed_ramdisks/ramdisk_"$device".cpio.gz --board "" --base 0x00000000 \
 	--kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 \
 	--cmdline "console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M" \
 	--pagesize 2048 --dt /tmp/dt.img --output $devicedir/boot.img;
 else # Just copy zImage and dt.img. AnyKernel will do the rest later.
-	echo -e "Copying zImage & dt.img...\n";
+	echo -e "Copying zImage & dt.img...";
 	cp -f /tmp/dt.img $devicedir/;
 	cp -f arch/arm/boot/zImage $devicedir/;
 fi;
@@ -323,4 +326,15 @@ cd $maindir/common;
 zip -r9 $outdir/$zipname.zip . > /dev/null;
 cd $devicedir;
 zip -r9 $outdir/$zipname.zip * > /dev/null;
-echo -e "\nDone!\n";
+echo -e "Done!"
+# Tell exactly when the build finished
+echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
+# Do some more time calculations
+finishtime=`date +"%H%M%S"`;
+finishhr=`echo $finishtime | cut -c1-2`;
+finishmin=`echo $finishtime | cut -c3-4`;
+finishsec=`echo $finishtime | cut -c5-6`;
+hr=`expr $finishhr - $starthr;`
+min=`expr $finishmin - $startmin;`
+min=`expr $finishsec - $startsec;`
+echo -e "This build took: $hr hour(s) $min minute(s) $sec second(s)\n";
