@@ -34,7 +34,7 @@ zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended)
 2. Classic (boot.img) (Use if you have problems with AK)
 
-${bold}Note:${normal} Classic mode is currently not available for AOSP/CM.
+${bold}Note:${normal} Classic mode is not yet available for AOSP/CM.
 If you choose it anyway, AnyKernel will be automatically selected. ";
 
 selstr="Do you want to force SELinux to stay in Permissive mode?
@@ -160,7 +160,7 @@ while read -p "$zipstr" zipmode; do
 				echo -e "Selected installation type: Classic\n";
 			else
 				zipmode="ak";
-				echo -e "Classic mode not yet available for CM. Using AnyKernel instead.\n";
+				echo -e "Didn't I already say that Classic mode isn't available for CM right now? We're gonna use AnyKernel.\nEnd of story.\n";
 			fi;
 			break;;
 		*)
