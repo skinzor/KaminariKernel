@@ -26,6 +26,9 @@ zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended)
 2. Classic (boot.img) (Use if you have problems with AK) ";
 
+selstr="Do you want to force SELinux to stay in Permissive mode?
+Only say Yes if you're aware of the possible security risks this may introduce! (Y/N) ";
+
 # Select which device the kernel should be built for
 while read -p "$devicestr" dev; do
 	case $dev in
@@ -131,6 +134,22 @@ while read -p "$zipstr" zipmode; do
 			echo -e "\nInvalid option. Try again.\n";;
 	esac;
 done;
+
+# Determine if we should force SELinux permissive mode
+while read -p "$selstr" forceperm; do
+	case $forceperm in
+		"y" | "Y" | "yes" | "Yes")
+			echo -e "WARNING: SELinux will stay in Permissive mode at all times. You won't be able to change it to Enforcing.\nBe careful.\n";
+			forceperm="Y";
+			break;;
+		"n" | "N" | "no" | "No" | "" | " ")
+			echo -e "SELinux will remain configurable (Android will always default it to Enforcing).\n";
+			forceperm="N";			
+			break;;
+		*)
+			echo -e "\nInvalid option. Try again.\n";;
+	esac;
+done;
 	
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
 			
@@ -143,9 +162,17 @@ fi;
 make "$device"_defconfig;
 
 if [[ $jobs != "0" ]]; then
-	make -j$jobs;
+	if [[ $forceperm = "Y" ]]; then
+		make -j$jobs CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
+	else
+		make -j$jobs;
+	fi;
 else
-	make;
+	if [[ $forceperm = "Y" ]]; then
+		make CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
+	else
+		make;
+	fi;
 fi;
 
 # Tell when the build was finished
@@ -214,7 +241,11 @@ fi;
 # cd ../Zip_CustomMM_$name;
 
 # Set zip name
-zipname="Kaminari_"$version"_"`echo "${device^}"`;
+if [[ $forceperm = "Y" ]]; then
+	zipname="Kaminari_"$version"_"`echo "${device^}"`"_Permissive";
+else
+	zipname="Kaminari_"$version"_"`echo "${device^}"`;
+fi;
 
 # Make the zip & finish
 case $device in
