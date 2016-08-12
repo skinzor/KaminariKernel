@@ -186,11 +186,6 @@ done;
 	
 # Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
-# Do some time calculations
-starttime=`date +"%H%M%S"`;
-starthr=`echo $starttime | cut -c1-2`;
-startmin=`echo $starttime | cut -c3-4`;
-startsec=`echo $starttime | cut -c5-6`;
 			
 # (Classic mode only) Remove all DTBs to avoid conflicts
 if [[ $zipmode = "classic" ]]; then
@@ -208,13 +203,13 @@ if [[ $jobs != "0" ]]; then
 	if [[ $forceperm = "Y" ]]; then
 		make -j$jobs CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
 	else
-		make -j$jobs;
+		make -j$jobs CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=n;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
 		make CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
 	else
-		make;
+		make CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=n;
 	fi;
 fi;
 
@@ -329,12 +324,3 @@ zip -r9 $outdir/$zipname.zip * > /dev/null;
 echo -e "Done!"
 # Tell exactly when the build finished
 echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
-# Do some more time calculations
-finishtime=`date +"%H%M%S"`;
-finishhr=`echo $finishtime | cut -c1-2`;
-finishmin=`echo $finishtime | cut -c3-4`;
-finishsec=`echo $finishtime | cut -c5-6`;
-hr=`expr $finishhr - $starthr;`
-min=`expr $finishmin - $startmin;`
-min=`expr $finishsec - $startsec;`
-echo -e "This build took: $hr hour(s) $min minute(s) $sec second(s)\n";
