@@ -26,13 +26,13 @@ devicestr="Which device do you want to build for?
 2. Moto G (1st gen, LTE) (peregrine)
 3. Moto G (2nd gen, GSM/LTE) (titan/thea) ";
 
-romstr="Which ROM do you want to build this kernel for?
+romstr="Which ROM do you want to build for?
 1. Motorola Stock / Identity Crisis 6.0
 2. AOSP 6.0.x / CyanogenMod 13 and derivatives ";
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended)
-2. Classic (boot.img) (Use if you have problems with AK)
+2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school)
 
 ${bold}Note:${normal} Classic mode is not yet available for AOSP/CM.
 If you choose it anyway, AnyKernel will be automatically selected. ";
@@ -111,7 +111,7 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 	else
 		case $rel in
 			"" | " " )
-				echo -e "No release number specified. Assuming test/nightly build.\n";
+				echo -e "No release number was specified. Labelling this build as testing/nightly.\n";
 				export LOCALVERSION="-Kaminari-Testing";
 				version=`date --utc "+%Y%m%d.%H%M%S"`;
 				break;;
