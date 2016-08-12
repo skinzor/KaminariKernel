@@ -268,13 +268,14 @@ fi;
 # do its job using the build machine (i.e. the computer), creating a boot.img from zImage, dt.img and a prepacked ramdisk.
 # In classic mode, we just need to dd the boot.img to the device-specific boot partition, thus using less resources.
 # AnyKernel, on the other hand, makes it easier to modify the kernel, especially the ramdisk.
-echo -e "Creating dt.img...\n"
+echo -e "Creating dt.img..."
 # Use dtbTool if building for the stock ROM; dtbToolCM if building for AOSP.
 if [[ $rom = "stock" ]]; then
-	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/ > /dev/null;
+	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 else
-	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/ > /dev/null;
+	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 fi;
+echo -e "\n";
 
 # Only create a boot.img if we're using classic mode.
 if [[ $zipmode = "classic" ]]; then
