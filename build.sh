@@ -186,29 +186,40 @@ done;
 	
 # Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
+starttime=`date +"%s"`;
 			
 # Remove all DTBs to avoid conflicts
 rm -rf arch/arm/boot/*.dtb;
 			
 # Build the kernel
 if [[ $rom = "stock" ]]; then
-	make "$device"_defconfig;
+	if [[ $forceperm = "Y" ]]; then
+		make perm/"$device"_defconfig;
+	else
+		make "$device"_defconfig;
+	fi;
 else
-	make cm/"$device"_defconfig;
+	if [[ $forceperm = "Y" ]]; then
+		make cm/"$device"_perm_defconfig;
+	else
+		make cm/"$device"_defconfig;
+	fi;
 fi;
 
 if [[ $jobs != "0" ]]; then
-	if [[ $forceperm = "Y" ]]; then
-		make -j$jobs CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
-	else
-		make -j$jobs CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=n;
-	fi;
+	make -j$jobs;
 else
-	if [[ $forceperm = "Y" ]]; then
-		make CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y;
-	else
-		make CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=n;
-	fi;
+	make;
+fi;
+
+if [[ -f arch/arm/boot/zImage ]]; then
+	echo -e "Code compilation finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
+	maketime=`date +"%s"`;
+	makediff=`expr $maketime - $starttime`;
+	echo -e "Code compilation took: `expr makediff / 60` minute(s) and `expr makediff % 60` second(s).\n";
+else
+	echo -e "zImage not found. Kernel build failed. Aborting.\n";
+	exit 1;
 fi;
 
 # Define directories (zip, out)
@@ -323,3 +334,7 @@ zip -r9 $outdir/$zipname.zip * > /dev/null;
 echo -e "Done!"
 # Tell exactly when the build finished
 echo -e "Build finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
+finishtime=`date +"%s"`;
+finishdiff=`expr $finishtime - $starttime`;
+echo -e "This build took: `expr finishdiff / 60` minute(s) and `expr finishdiff % 60` second(s).\n";
+
