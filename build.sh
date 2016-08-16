@@ -32,10 +32,7 @@ romstr="Which ROM do you want to build for?
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended)
-2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school)
-
-${bold}Note:${normal} Classic mode is not yet available for AOSP/CM.
-If you choose it anyway, AnyKernel will be automatically selected. ";
+2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school) ";
 
 selstr="Do you want to force SELinux to stay in Permissive mode?
 Only say Yes if you're aware of the possible security risks this may introduce! (Y/N) ";
@@ -155,13 +152,8 @@ while read -p "$zipstr" zipmode; do
 			echo -e "Selected installation type: AnyKernel\n";
 			break;;
 		"2")
-			if [[ $rom = "stock" ]]; then
-				zipmode="classic";
-				echo -e "Selected installation type: Classic\n";
-			else
-				zipmode="ak";
-				echo -e "Didn't I already say that Classic mode isn't available for CM right now? We're gonna use AnyKernel.\nEnd of story.\n";
-			fi;
+			zipmode="classic";
+			echo -e "Selected installation type: Classic\n";
 			break;;
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
@@ -289,10 +281,15 @@ fi;
 
 # Only create a boot.img if we're using classic mode.
 if [[ $zipmode = "classic" ]]; then
+	if [[ $rom = "stock" ]]; then
+		cmdline="console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M";
+	else
+		cmdline="androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=qcom vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags"
+	fi;
 	echo -e "Creating boot.img...";
-	./bootimgtools/mkbootimg --kernel arch/arm/boot/zImage --ramdisk $maindir/packed_ramdisks/ramdisk_"$device".cpio.gz --board "" --base 0x00000000 \
+	./bootimgtools/mkbootimg --kernel arch/arm/boot/zImage --ramdisk $maindir/prepacked_ramdisks/ramdisk_"$device".cpio.gz --board "" --base 0x00000000 \
 	--kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 \
-	--cmdline "console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M" \
+	--cmdline "$cmdline" \
 	--pagesize 2048 --dt /tmp/dt.img --output $devicedir/boot.img;
 else # Just copy zImage and dt.img. AnyKernel will do the rest later.
 	echo -e "Copying zImage & dt.img...";
