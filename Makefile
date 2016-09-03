@@ -372,8 +372,9 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
-KAMINARI_FLAGS := -pipe -munaligned-access -mfloat-abi=softfp -mvectorize-with-neon-quad -mfpu=neon-vfpv4 \
-		   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+# Some optimization flags. Credits to kwoktopus for the original idea.
+KAMINARI_FLAGS := -pipe -munaligned-access -mfloat-abi=softfp -mfpu=neon-vfpv4 \
+		   -fmodulo-sched -fmodulo-sched-allow-regmoves -fsingle-precision-constant \
 		   -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
 		   -fno-pic -Wno-unused -Wno-maybe-uninitialized -Wno-array-bounds -Wno-sizeof-array-argument -mno-android \
 		   --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048 -std=gnu89
@@ -576,21 +577,21 @@ endif # $(dot-config)
 all: vmlinux
 
 ifdef CONFIG_CC_DONT_OPTIMIZE
-KBUILD_CFLAGS	+=
+KBUILD_CFLAGS	+= -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZE_FOR_DEBUGGING
-KBUILD_CFLAGS	+= -Og
+KBUILD_CFLAGS	+= -Og -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ZERO
-KBUILD_CFLAGS	+= -O0
+KBUILD_CFLAGS	+= -O0 -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_ONE
-KBUILD_CFLAGS	+= -O1
+KBUILD_CFLAGS	+= -O1 -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_TWO
-KBUILD_CFLAGS	+= -O2
+KBUILD_CFLAGS	+= -O2 -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZATION_LEVEL_THREE
-KBUILD_CFLAGS	+= -O3
+KBUILD_CFLAGS	+= -O3 -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 else ifdef CONFIG_CC_OPTIMIZATION_MAX
-KBUILD_CFLAGS	+= -Ofast
+KBUILD_CFLAGS	+= -Ofast -Wno-array-bounds -Wno-shift-overflow -Wno-maybe-uninitialized
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
