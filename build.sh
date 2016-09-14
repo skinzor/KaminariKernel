@@ -2,7 +2,6 @@
 
 # Variables
 sequence=`seq 1 100`;
-numjobs=0;
 this="KaminariKernel";
 
 # Set up the cross-compiler
@@ -23,8 +22,7 @@ echo -e "Building KaminariKernel...\n";
 
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
-2. Moto G (1st gen, LTE) (peregrine)
-3. Moto G (2nd gen, GSM/LTE) (titan/thea) ";
+2. Moto G (1st gen, LTE) (peregrine) ";
 
 romstr="Which ROM do you want to build for?
 1. Motorola Stock / Identity Crisis 6.0
@@ -122,28 +120,6 @@ while read -p "Do you want to specify a release/version number? (Just press ente
 	break;
 done;
 
-# Select how many parallel CPU jobs should be used.
-# The ideal number is 2x the number of CPU cores.
-# E.g. for a quad-core CPU, the ideal would be 8 jobs, and so on.
-while read -p "How many parallel jobs do you want to use? (Default is 4.) " numjobs; do
-	for i in $sequence; do
-		if [[ $numjobs = $i ]]; then
-			echo -e "Number of custom jobs: $numjobs\n";
-			jobs=$numjobs;
-		else
-			case $numjobs in
-				"" | " ")
-					echo -e "No custom number of jobs specified. Using default number.\n";
-					jobs="4";
-					break;;
-				*)
-					echo -e "\nInvalid option. Try again.\n";;
-			esac;
-		fi;
-	done;
-	break;
-done;
-
 # Select which installation type will be used
 while read -p "$zipstr" zipmode; do
 	case $zipmode in
@@ -186,23 +162,19 @@ rm -rf arch/arm/boot/*.dtb;
 # Build the kernel
 if [[ $rom = "stock" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		make perm/"$device"_defconfig;
+		make stock/perm/"$device"_defconfig;
 	else
-		make "$device"_defconfig;
+		make stock/"$device"_defconfig;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
-		make cm/"$device"_perm_defconfig;
+		make cm/perm/"$device"_defconfig;
 	else
 		make cm/"$device"_defconfig;
 	fi;
 fi;
 
-if [[ $jobs != "0" ]]; then
-	make -j$jobs;
-else
-	make;
-fi;
+make -j4;
 
 if [[ -f arch/arm/boot/zImage ]]; then
 	echo -e "Code compilation finished on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
