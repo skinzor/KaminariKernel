@@ -147,7 +147,7 @@ done;
 # Select which installation type will be used
 while read -p "$zipstr" zipmode; do
 	case $zipmode in
-		"1")
+		"1" | "" | " ")
 			zipmode="ak";
 			echo -e "Selected installation type: AnyKernel\n";
 			break;;
