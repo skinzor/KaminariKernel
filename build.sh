@@ -162,13 +162,13 @@ rm -rf arch/arm/boot/*.dtb;
 # Build the kernel
 if [[ $rom = "stock" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		make stock/perm/"$device"_defconfig;
+		make stockperm/"$device"_defconfig;
 	else
 		make stock/"$device"_defconfig;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
-		make cm/perm/"$device"_defconfig;
+		make cmperm/"$device"_defconfig;
 	else
 		make cm/"$device"_defconfig;
 	fi;
