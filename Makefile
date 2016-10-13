@@ -334,12 +334,14 @@ include $(srctree)/scripts/Kbuild.include
 # Make variables (CC, etc...)
 
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
+LD		= $(CROSS_COMPILE)ld.bfd
 LD		+= -O3 --strip-debug
 CC		= $(CROSS_COMPILE)gcc
-CC		+= -O3 -fmodulo-sched -fmodulo-sched-allow-regmoves -Wno-maybe-uninitialized -Wno-array-bounds
+CC		+= -O3 -mcpu=cortex-a7 -mtune=cortex-a7 -fmodulo-sched -fmodulo-sched-allow-regmoves
 CC		+= -fgraphite-identity -floop-block -floop-interchange -floop-strip-mine
 CC		+= -ftree-loop-linear -ftree-loop-distribution
+CC		+= -Wno-maybe-uninitialized -Wno-array-bounds
+CC		+= --param l1-cache-size=16 --param l1-cache-line-size=16 --param l2-cache-size=2048
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
