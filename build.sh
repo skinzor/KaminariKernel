@@ -32,7 +32,7 @@ romstr="Which ROM do you want to build for?
 
 cleanstr="Do you want to remove everything from the last build? (Y/N)
 
-You ${bold}MUST${normal} do this if you have changed toolchains."
+You ${bold}MUST${normal} do this if you have changed toolchains. "
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended/default)
@@ -43,12 +43,12 @@ zipstr="Which installation type do you want to use?
 while read -p "$toolchainstr" tc; do
 	case $tc in
 		"1" | "" | " ")
-			echo -e "Selected toolchain: Linaro GCC 4.9";
+			echo -e "Selected toolchain: Linaro GCC 4.9\n";
 			export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
 			export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 			break;;
 		"2")
-			echo -e "Google/AOSP GCC 4.9";
+			echo -e "Selected toolchain: Google/AOSP GCC 4.9\n";
 			export PATH=$HOME/Toolchains/Google-4.9-Generic/bin:$PATH;
 			export CROSS_COMPILE=arm-linux-androideabi-;
 			break;;
