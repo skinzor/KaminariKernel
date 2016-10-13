@@ -4,11 +4,9 @@
 sequence=`seq 1 100`;
 this="KaminariKernel";
 
-# Set up the cross-compiler
-export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
+# Set up the cross-compiler (pt. 1)
 export ARCH=arm;
 export SUBARCH=arm;
-export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 
 # Clear the screen, bud!
 clear;
@@ -20,6 +18,10 @@ normal=`tput sgr0`;
 # Let's start...
 echo -e "Building KaminariKernel...\n";
 
+toolchainstr="Which cross-compiler toolchain do you want to use?
+1. Linaro GCC 4.9 (default)
+2. Google/AOSP GCC 4.9 ";
+
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
 2. Moto G (1st gen, LTE) (peregrine) ";
@@ -29,11 +31,29 @@ romstr="Which ROM do you want to build for?
 2. AOSP 6.0.x / CyanogenMod 13 and derivatives ";
 
 zipstr="Which installation type do you want to use?
-1. AnyKernel (recommended)
+1. AnyKernel (recommended/default)
 2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school) ";
 
 selstr="Do you want to force SELinux to stay in Permissive mode?
 Only say Yes if you're aware of the possible security risks this may introduce! (Y/N) ";
+
+# Select which toolchain should be used & Set up the cross-compiler (pt. 2)
+while read -p "$toolchainstr" tc; do
+	case $tc in
+		"1" | "" | " ")
+			echo -e "Selected toolchain: Linaro GCC 4.9";
+			export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
+			export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
+			break;;
+		"2")
+			echo -e "Google/AOSP GCC 4.9";
+			export PATH=$HOME/Toolchains/Google-4.9-Generic/bin:$PATH;
+			export CROSS_COMPILE=arm-linux-androideabi-;
+			break;;
+		*)
+			echo -e "\nInvalid option. Try again.\n";;
+	esac;
+done;			
 
 # Select which device the kernel should be built for
 while read -p "$devicestr" dev; do
