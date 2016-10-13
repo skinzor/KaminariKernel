@@ -76,6 +76,15 @@ config INIT_ENV_ARG_LIMIT
 	  Maximum of each of the number of arguments and environment
 	  variables passed to init from the kernel command line.
 
+config CM13_KERNEL
+	bool "CyanogenMod 13 kernel"
+	default n
+	help
+		Build the kernel with some CM13-specific changes. It might
+		not work properly on the stock ROM if this option is enabled.
+		
+		Say Y only if this kernel will be used with AOSP- or CM-based ROMs.
+		Otherwise, say N.
 
 config CROSS_COMPILE
 	string "Cross-compiler tool prefix"
