@@ -30,12 +30,14 @@ romstr="Which ROM do you want to build for?
 1. Motorola Stock / Identity Crisis 6.0
 2. AOSP 6.0.x / CyanogenMod 13 and derivatives ";
 
+cleanstr="Do you want to remove everything from the last build? (Y/N)
+
+You ${bold}MUST${normal} do this if you have changed toolchains."
+
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended/default)
 2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school) ";
 
-selstr="Do you want to force SELinux to stay in Permissive mode?
-Only say Yes if you're aware of the possible security risks this may introduce! (Y/N) ";
 
 # Select which toolchain should be used & Set up the cross-compiler (pt. 2)
 while read -p "$toolchainstr" tc; do
@@ -94,7 +96,7 @@ done;
 		
 # Clean everything via `make mrproper`.
 # Recommended if there were extensive changes to the source code.
-while read -p "Do you want to clean everything (generated files, etc.)? (Y/N) " clean; do
+while read -p "$cleanstr" clean; do
 	case $clean in
 		"y" | "Y" | "yes" | "Yes")
 			echo -e "Cleaning everything...\n";
