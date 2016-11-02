@@ -36,7 +36,10 @@ You ${bold}MUST${normal} do this if you have changed toolchains. "
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended/default)
-2. Classic (boot.img) (Use if you have problems with AK - or if you just prefer old school) ";
+2. Classic (boot.img) (Use only if you have problems with AnyKernel) ";
+
+selstr="Do you want to force SELinux to stay in Permissive mode?
+Only say Yes if you're aware of the security risks this may introduce! (Y/N) ";
 
 
 # Select which toolchain should be used & Set up the cross-compiler (pt. 2)
@@ -157,6 +160,22 @@ while read -p "$zipstr" zipmode; do
 			echo -e "\nInvalid option. Try again.\n";;
 	esac;
 done;
+
+# Determine if we should force SELinux permissive mode
+while read -p "$selstr" forceperm; do
+	case $forceperm in
+		"y" | "Y" | "yes" | "Yes")
+			echo -e "${bold}WARNING: SELinux will stay in Permissive mode at all times. You won't be able to change it to Enforcing.\nBe careful.\n${normal}";
+			forceperm="Y";
+			break;;
+		"n" | "N" | "no" | "No" | "" | " ")
+			echo -e "SELinux will remain configurable (Android will always default it to Enforcing).\n";
+			forceperm="N";			
+			break;;
+		*)
+			echo -e "\nInvalid option. Try again.\n";;
+	esac;
+done;
 	
 # Tell exactly when the build started
 echo -e "Build started on:\n`date +"%A, %d %B %Y @ %H:%M:%S %Z (GMT %:z)"`\n`date --utc +"%A, %d %B %Y @ %H:%M:%S %Z"`\n";
@@ -170,6 +189,11 @@ if [[ $rom = "stock" ]]; then
 	make stock/"$device"_defconfig;
 else
 	make cm/"$device"_defconfig;
+fi;
+
+# Permissive selinux? Edit .config
+if [[ $forceperm == "Y" ]]; then
+	sed -i s/"# CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE is not set"/"CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y"/ .config;
 fi;
 
 make -j4;
@@ -269,9 +293,17 @@ fi;
 
 # Set the zip's name
 if [[ $rom = "stock" ]]; then
-	zipname="Kaminari_"$version"_"`echo "${device^}"`;
+	if [[ $forceperm = "Y" ]]; then
+		zipname="Kaminari_"$version"_"`echo "${device^}"`"_Permissive";
+	else
+		zipname="Kaminari_"$version"_"`echo "${device^}"`;
+	fi;
 else
-	zipname="KaminariCM_"$version"_"`echo "${device^}"`;
+	if [[ $forceperm = "Y" ]]; then
+		zipname="KaminariCM_"$version"_"`echo "${device^}"`"_Permissive";
+	else
+		zipname="KaminariCM_"$version"_"`echo "${device^}"`;
+	fi;
 fi;
 
 # Zip the stuff we need & finish
