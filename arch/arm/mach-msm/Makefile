@@ -372,7 +372,7 @@ obj-$(CONFIG_ARCH_APQ8084) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_FSM9900) += gpiomux-v2.o gpiomux.o
 
 obj-$(CONFIG_MSM_SLEEP_STATS_DEVICE) += idle_stats_device.o
-ifndef CONFIG_CM13_KERNEL
+ifdef CONFIG_ASMP
 obj-$(CONFIG_MSM_DCVS) += msm_dcvs_scm.o msm_dcvs.o
 else
 obj-$(CONFIG_MSM_DCVS) += msm_dcvs_scm.o msm_dcvs.o msm_mpdecision.o
