@@ -16,7 +16,7 @@ bold=`tput bold`;
 normal=`tput sgr0`;
 
 # Let's start...
-echo -e "Building KaminariKernel...\n";
+echo -e "Building KaminariKernel (CM14.1)...\n";
 
 toolchainstr="Which cross-compiler toolchain do you want to use?
 1. Linaro GCC 4.9 (default)
@@ -26,9 +26,9 @@ devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
 2. Moto G (1st gen, LTE) (peregrine) ";
 
-romstr="Which ROM do you want to build for?
-1. Motorola Stock / Identity Crisis 6.0
-2. AOSP 6.0.x / CyanogenMod 13 and derivatives ";
+hpstr="Which hotplug driver should this build use?
+1. MPDecision (default)
+2. AutoSMP ";
 
 cleanstr="Do you want to remove everything from the last build? (Y/N)
 
@@ -80,16 +80,16 @@ while read -p "$devicestr" dev; do
 	esac;
 done;
 
-# Select which ROM the kernel should be built for
-while read -p "$romstr" rom; do
-	case $rom in
+# Select which hotplug should be used
+while read -p "$hpstr" hp; do
+	case $hp in
 		"1")
-			echo -e "Selected ROM: Motorola Stock / IDCrisis 6.0\n"
-			rom="stock";
+			echo -e "Selected driver: MPDecision\n"
+			hp="mpdec";
 			break;;
 		"2")
-			echo -e "Selected ROM: AOSP / CM13 & derivatives\n"
-			rom="cm";
+			echo -e "Selected driver: AutoSMP\n"
+			hp="asmp";
 			break;;
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
@@ -185,15 +185,16 @@ starttime=`date +"%s"`;
 rm -rf arch/arm/boot/*.dtb;
 			
 # Build the kernel
-if [[ $rom = "stock" ]]; then
-	make stock/"$device"_defconfig;
-else
-	make cm/"$device"_defconfig;
-fi;
+make cm/"$device"_defconfig;
 
 # Permissive selinux? Edit .config
-if [[ $forceperm == "Y" ]]; then
+if [[ $forceperm = "Y" ]]; then
 	sed -i s/"# CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE is not set"/"CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y"/ .config;
+fi;
+
+# AutoSMP? Also edit .config
+if [[ $hp = "asmp" ]]; then
+	sed -i s/"# CONFIG_ASMP is not set"/"CONFIG_ASMP=y"/ .config;
 fi;
 
 make -j4;
@@ -209,22 +210,12 @@ else
 fi;
 
 # Define directories (zip, out)
-if [[ $rom = "stock" ]]; then
-	if [[ $zipmode = "ak" ]]; then
-		maindir=$HOME/Kernel/Zip_CustomIdC_AK;
-		outdir=$HOME/Kernel/Out_CustomIdC_AK/$device;
-	else
-		maindir=$HOME/Kernel/Zip_CustomIdC_BootImg;
-		outdir=$HOME/Kernel/Out_CustomIdC_BootImg/$device;
-	fi;
+if [[ $zipmode = "ak" ]]; then
+	maindir=$HOME/Kernel/Zip_CM_AK;
+	outdir=$HOME/Kernel/Out_CM_AK/$device;
 else
-	if [[ $zipmode = "ak" ]]; then
-		maindir=$HOME/Kernel/Zip_CM_AK;
-		outdir=$HOME/Kernel/Out_CM_AK/$device;
-	else
-		maindir=$HOME/Kernel/Zip_CM_BootImg;
-		outdir=$HOME/Kernel/Out_CM_BootImg/$device;
-	fi;
+	maindir=$HOME/Kernel/Zip_CM_BootImg;
+	outdir=$HOME/Kernel/Out_CM_BootImg/$device;
 fi;
 devicedir=$maindir/$device;
 
@@ -234,52 +225,12 @@ if [ ! -d $maindir ] || [ ! -d $outdir ]; then
 	mkdir -p $maindir && mkdir -p $outdir;
 fi;
 
-# [For stock/IDCrisis ROM only] Make the modules dir if it doesn't exist.
-# Remove any previously built modules as well.
-if [[ $rom = "stock" ]]; then
-	if [[ $zipmode = "ak" ]]; then
-		[ -d $devicedir/modules ] || mkdir -p $devicedir/modules;
-		[ -d $devicedir/modules ] && rm -rf $devicedir/modules/*;
-		[ -d $devicedir/modules/pronto ] || mkdir -p $devicedir/modules/pronto;
-		moduledir=$devicedir/modules;
-	else
-		[ -d $devicedir/system/lib/modules ] || mkdir -p $devicedir/system/lib/modules;
-		[ -d $devicedir/system/lib/modules ] && rm -rf $devicedir/system/lib/modules/*;	
-		[ -d $devicedir/system/lib/modules/pronto ] || mkdir -p $devicedir/system/lib/modules/pronto;
-		moduledir=$devicedir/system/lib/modules;
-	fi;
 
-	# Copy the modules
-	echo -e "Copying kernel modules...\n";
-	for mod in `find . -type f -name "*.ko"`; do
-		cp -f $mod $moduledir/;
-	done;
-	# Move wi-fi module (wlan.ko) to modules/pronto & rename it to pronto_wlan.ko. This is very important!!
-	# A symlink to it (named wlan.ko) will be created at installation time.
-	mv $moduledir/wlan.ko $moduledir/pronto/pronto_wlan.ko;
-fi;
+# Use zImage + dt.img instead
+/bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 
-# Use zImage + dt.img instead of using zImage-dtb. This is what AnyKernel does by default.
-# This dt.img will also be used for classic mode.
-# The difference is, while AnyKernel does all its magic on the phone itself, classic mode will
-# do its job using the build machine (i.e. the computer), creating a boot.img from zImage, dt.img and a prepacked ramdisk.
-# In classic mode, we just need to dd the boot.img to the device-specific boot partition, thus using less resources.
-# AnyKernel, on the other hand, makes it easier to modify the kernel, especially the ramdisk.
-echo -e "Creating dt.img..."
-# Use dtbTool if building for the stock ROM; dtbToolCM if building for AOSP.
-if [[ $rom = "stock" ]]; then
-	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
-else
-	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
-fi;
-
-# Only create a boot.img if we're using classic mode.
 if [[ $zipmode = "classic" ]]; then
-	if [[ $rom = "stock" ]]; then
-		cmdline="console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M";
-	else
-		cmdline="androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=qcom vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags"
-	fi;
+	cmdline="androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=qcom vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags"
 	echo -e "Creating boot.img...";
 	./bootimgtools/mkbootimg --kernel arch/arm/boot/zImage --ramdisk $maindir/prepacked_ramdisks/ramdisk_"$device".cpio.gz --board "" --base 0x00000000 \
 	--kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100 \
@@ -292,11 +243,11 @@ else # Just copy zImage and dt.img. AnyKernel will do the rest later.
 fi;
 
 # Set the zip's name
-if [[ $rom = "stock" ]]; then
+if [[ $hp = "asmp" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		zipname="Kaminari_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="Kaminari_"$version"_"`echo "${device^}"`;
+		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
@@ -317,7 +268,11 @@ case $device in
 		# echo -e "Device: Moto G 2nd Gen (titan/thea)" > $devicedir/device.txt;;
 esac;
 echo -e "Version: $version" > $devicedir/version.txt;
-cd $maindir/common;
+if [[ $hp = "asmp" ]]; then
+	cd $maindir/common_alt;
+else
+	cd $maindir/common;
+fi;
 zip -r9 $outdir/$zipname.zip . > /dev/null;
 cd $devicedir;
 zip -r9 $outdir/$zipname.zip * > /dev/null;
