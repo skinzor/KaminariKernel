@@ -83,7 +83,7 @@ done;
 # Select which hotplug should be used
 while read -p "$hpstr" hp; do
 	case $hp in
-		"1")
+		"1" | "" | " ")
 			echo -e "Selected driver: MPDecision\n"
 			hp="mpdec";
 			break;;
