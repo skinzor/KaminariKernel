@@ -27,12 +27,16 @@ devicestr="Which device do you want to build for?
 2. Moto G (1st gen, LTE) (peregrine) ";
 
 romstr="Which ROM do you want to build for?
-1. Motorola Stock / Identity Crisis 6.0
-2. AOSP 6.0.x / CyanogenMod 13 and derivatives ";
+1. AOSP/CM/Any non-stock ROM (Standard, MPDecision)
+2. AOSP/CM/Any non-stock ROM (Alternative, AutoSMP)
+3. Identity Crisis 6 ";
 
 cleanstr="Do you want to remove everything from the last build? (Y/N)
 
-You ${bold}MUST${normal} do this if you have changed toolchains. "
+You ${bold}MUST${normal} do this if: 
+1. You have changed toolchains;
+2. You have built a CM Standard version and will now build a CM Alternative (or vice-versa);
+3. You have built any CM version and will now build an IDCrisis version (or vice-versa). "
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended/default)
@@ -84,13 +88,17 @@ done;
 while read -p "$romstr" rom; do
 	case $rom in
 		"1")
-			echo -e "Selected ROM: Motorola Stock / IDCrisis 6.0\n"
-			rom="stock";
-			break;;
-		"2")
-			echo -e "Selected ROM: AOSP / CM13 & derivatives\n"
+			echo -e "Selected ROM: Non-stock (AOSP/CM/etc.) / Standard\n"
 			rom="cm";
 			break;;
+		"2")
+			echo -e "Selected ROM: Non-stock (AOSP/CM/etc.) / Alternative\n"
+			rom="cm_alt";
+			break;;
+		"3")
+			echo -e "Selected ROM: Identity Crisis 6\n"
+			rom="stock";
+			break;;			
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
 	esac;
@@ -192,8 +200,13 @@ else
 fi;
 
 # Permissive selinux? Edit .config
-if [[ $forceperm == "Y" ]]; then
+if [[ $forceperm = "Y" ]]; then
 	sed -i s/"# CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE is not set"/"CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE=y"/ .config;
+fi;
+
+# CM13 alt version? Also edit .config
+if [[ $rom = "cm_alt" ]]; then
+	sed -i s/"# CONFIG_ASMP is not set"/"CONFIG_ASMP=y"/ .config;
 fi;
 
 make -j4;
@@ -298,6 +311,12 @@ if [[ $rom = "stock" ]]; then
 	else
 		zipname="Kaminari_"$version"_"`echo "${device^}"`;
 	fi;
+elif [[ $rom = "cm_alt" ]]; then
+	if [[ $forceperm = "Y" ]]; then
+		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`"_Permissive";
+	else
+		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`;
+	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
 		zipname="KaminariCM_"$version"_"`echo "${device^}"`"_Permissive";
@@ -317,7 +336,11 @@ case $device in
 		# echo -e "Device: Moto G 2nd Gen (titan/thea)" > $devicedir/device.txt;;
 esac;
 echo -e "Version: $version" > $devicedir/version.txt;
-cd $maindir/common;
+if [[ $rom = "cm_alt" ]]; then
+	cd $maindir/common_alt;
+else
+	cd $maindir/common;
+fi;
 zip -r9 $outdir/$zipname.zip . > /dev/null;
 cd $devicedir;
 zip -r9 $outdir/$zipname.zip * > /dev/null;
