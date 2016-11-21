@@ -224,11 +224,11 @@ fi;
 # Define directories (zip, out)
 if [[ $rom = "stock" ]]; then
 	if [[ $zipmode = "ak" ]]; then
-		maindir=$HOME/Kernel/Zip_CustomIdC_AK;
-		outdir=$HOME/Kernel/Out_CustomIdC_AK/$device;
+		maindir=$HOME/Kernel/Zip_IdCrisis_AK;
+		outdir=$HOME/Kernel/Out_IdCrisis_AK/$device;
 	else
-		maindir=$HOME/Kernel/Zip_CustomIdC_BootImg;
-		outdir=$HOME/Kernel/Out_CustomIdC_BootImg/$device;
+		maindir=$HOME/Kernel/Zip_IdCrisis_BootImg;
+		outdir=$HOME/Kernel/Out_IdCrisis_BootImg/$device;
 	fi;
 else
 	if [[ $zipmode = "ak" ]]; then
