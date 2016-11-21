@@ -97,7 +97,7 @@ while read -p "$romstr" rom; do
 			break;;
 		"3")
 			echo -e "Selected ROM: Identity Crisis 6\n"
-			rom="stock";
+			rom="idcrisis";
 			break;;			
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
@@ -193,7 +193,7 @@ starttime=`date +"%s"`;
 rm -rf arch/arm/boot/*.dtb;
 			
 # Build the kernel
-if [[ $rom = "stock" ]]; then
+if [[ $rom = "idcrisis" ]]; then
 	make stock/"$device"_defconfig;
 else
 	make cm/"$device"_defconfig;
@@ -222,7 +222,7 @@ else
 fi;
 
 # Define directories (zip, out)
-if [[ $rom = "stock" ]]; then
+if [[ $rom = "idcrisis" ]]; then
 	if [[ $zipmode = "ak" ]]; then
 		maindir=$HOME/Kernel/Zip_IdCrisis_AK;
 		outdir=$HOME/Kernel/Out_IdCrisis_AK/$device;
@@ -230,6 +230,7 @@ if [[ $rom = "stock" ]]; then
 		maindir=$HOME/Kernel/Zip_IdCrisis_BootImg;
 		outdir=$HOME/Kernel/Out_IdCrisis_BootImg/$device;
 	fi;
+	devicedir=$maindir/$device;
 else
 	if [[ $zipmode = "ak" ]]; then
 		maindir=$HOME/Kernel/Zip_CM_AK;
@@ -238,8 +239,9 @@ else
 		maindir=$HOME/Kernel/Zip_CM_BootImg;
 		outdir=$HOME/Kernel/Out_CM_BootImg/$device;
 	fi;
+	devicedir=$maindir/$device"_M";
 fi;
-devicedir=$maindir/$device;
+
 
 
 # Make the zip and out dirs if they don't exist
@@ -249,7 +251,7 @@ fi;
 
 # [For stock/IDCrisis ROM only] Make the modules dir if it doesn't exist.
 # Remove any previously built modules as well.
-if [[ $rom = "stock" ]]; then
+if [[ $rom = "idcrisis" ]]; then
 	if [[ $zipmode = "ak" ]]; then
 		[ -d $devicedir/modules ] || mkdir -p $devicedir/modules;
 		[ -d $devicedir/modules ] && rm -rf $devicedir/modules/*;
@@ -272,23 +274,18 @@ if [[ $rom = "stock" ]]; then
 	mv $moduledir/wlan.ko $moduledir/pronto/pronto_wlan.ko;
 fi;
 
-# Use zImage + dt.img instead of using zImage-dtb. This is what AnyKernel does by default.
-# This dt.img will also be used for classic mode.
-# The difference is, while AnyKernel does all its magic on the phone itself, classic mode will
-# do its job using the build machine (i.e. the computer), creating a boot.img from zImage, dt.img and a prepacked ramdisk.
-# In classic mode, we just need to dd the boot.img to the device-specific boot partition, thus using less resources.
-# AnyKernel, on the other hand, makes it easier to modify the kernel, especially the ramdisk.
+# Use zImage + dt.img instead of using zImage-dtb
 echo -e "Creating dt.img..."
-# Use dtbTool if building for the stock ROM; dtbToolCM if building for AOSP.
-if [[ $rom = "stock" ]]; then
+# Use dtbTool if building for the stock ROM; dtbToolCM if building for AOSP/CM
+if [[ $rom = "idcrisis" ]]; then
 	./bootimgtools/dtbTool -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 else
 	./bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 fi;
 
-# Only create a boot.img if we're using classic mode.
+# Only create a boot.img if we're using classic mode
 if [[ $zipmode = "classic" ]]; then
-	if [[ $rom = "stock" ]]; then
+	if [[ $rom = "idcrisis" ]]; then
 		cmdline="console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37 vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags movablecore=160M";
 	else
 		cmdline="androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=qcom vmalloc=400M utags.blkdev=/dev/block/platform/msm_sdcc.1/by-name/utags"
@@ -304,12 +301,12 @@ else # Just copy zImage and dt.img. AnyKernel will do the rest later.
 	cp -f arch/arm/boot/zImage $devicedir/;
 fi;
 
-# Set the zip's name
-if [[ $rom = "stock" ]]; then
+# Name the flashable zip
+if [[ $rom = "idcrisis" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		zipname="Kaminari_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariIDCrisis_"$version"_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="Kaminari_"$version"_"`echo "${device^}"`;
+		zipname="KaminariIDCrisis_"$version"_"`echo "${device^}"`;
 	fi;
 elif [[ $rom = "cm_alt" ]]; then
 	if [[ $forceperm = "Y" ]]; then
@@ -335,12 +332,12 @@ case $device in
 	# "titan")
 		# echo -e "Device: Moto G 2nd Gen (titan/thea)" > $devicedir/device.txt;;
 esac;
-echo -e "Version: $version" > $devicedir/version.txt;
 if [[ $rom = "cm_alt" ]]; then
-	cd $maindir/common_alt;
+	echo -e "Version: $version-alt" > $devicedir/version.txt;
 else
-	cd $maindir/common;
+	echo -e "Version: $version" > $devicedir/version.txt;
 fi;
+cd $maindir/common;
 zip -r9 $outdir/$zipname.zip . > /dev/null;
 cd $devicedir;
 zip -r9 $outdir/$zipname.zip * > /dev/null;
