@@ -217,7 +217,7 @@ else
 	maindir=$HOME/Kernel/Zip_CM_BootImg;
 	outdir=$HOME/Kernel/Out_CM_BootImg/$device;
 fi;
-devicedir=$maindir/$device;
+devicedir=$maindir/$device"_N";
 
 
 # Make the zip and out dirs if they don't exist
@@ -226,7 +226,7 @@ if [ ! -d $maindir ] || [ ! -d $outdir ]; then
 fi;
 
 
-# Use zImage + dt.img instead
+# Use zImage + dt.img
 /bootimgtools/dtbToolCM -2 -s 2048 -o /tmp/dt.img -p scripts/dtc/ arch/arm/boot/;
 
 if [[ $zipmode = "classic" ]]; then
@@ -245,15 +245,15 @@ fi;
 # Set the zip's name
 if [[ $hp = "asmp" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariCMAlt_"$version"-N_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`;
+		zipname="KaminariCMAlt_"$version"-N_"`echo "${device^}"`;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
-		zipname="KaminariCM_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariCM_"$version"-N_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="KaminariCM_"$version"_"`echo "${device^}"`;
+		zipname="KaminariCM_"$version"-N_"`echo "${device^}"`;
 	fi;
 fi;
 
@@ -267,12 +267,12 @@ case $device in
 	# "titan")
 		# echo -e "Device: Moto G 2nd Gen (titan/thea)" > $devicedir/device.txt;;
 esac;
-echo -e "Version: $version" > $devicedir/version.txt;
 if [[ $hp = "asmp" ]]; then
-	cd $maindir/common_alt;
+	echo -e "Version: $version-alt" > $devicedir/version.txt;
 else
-	cd $maindir/common;
-fi;
+	echo -e "Version: $version" > $devicedir/version.txt;
+fi;	
+cd $maindir/common;
 zip -r9 $outdir/$zipname.zip . > /dev/null;
 cd $devicedir;
 zip -r9 $outdir/$zipname.zip * > /dev/null;
