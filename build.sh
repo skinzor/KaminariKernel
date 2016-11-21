@@ -313,15 +313,15 @@ if [[ $rom = "stock" ]]; then
 	fi;
 elif [[ $rom = "cm_alt" ]]; then
 	if [[ $forceperm = "Y" ]]; then
-		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariCMAlt_"$version"-M_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="KaminariCMAlt_"$version"_"`echo "${device^}"`;
+		zipname="KaminariCMAlt_"$version"-M_"`echo "${device^}"`;
 	fi;
 else
 	if [[ $forceperm = "Y" ]]; then
-		zipname="KaminariCM_"$version"_"`echo "${device^}"`"_Permissive";
+		zipname="KaminariCM_"$version"-M_"`echo "${device^}"`"_Permissive";
 	else
-		zipname="KaminariCM_"$version"_"`echo "${device^}"`;
+		zipname="KaminariCM_"$version"-M_"`echo "${device^}"`;
 	fi;
 fi;
 
