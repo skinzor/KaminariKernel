@@ -20,7 +20,9 @@ echo -e "Building KaminariKernel...\n";
 
 toolchainstr="Which cross-compiler toolchain do you want to use?
 1. Linaro GCC 4.9 (default)
-2. Google/AOSP GCC 4.9 ";
+2. Google/AOSP GCC 4.8
+3. Google/AOSP GCC 4.9 
+4. Uber GCC 4.9 ";
 
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
@@ -55,10 +57,22 @@ while read -p "$toolchainstr" tc; do
 			export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 			break;;
 		"2")
+			echo -e "Selected toolchain: Google/AOSP GCC 4.8\n";
+			export PATH=$HOME/Toolchains/Google-4.8-Generic/bin:$PATH;
+			export CROSS_COMPILE=arm-eabi-;
+			break;;
+
+		"3")
 			echo -e "Selected toolchain: Google/AOSP GCC 4.9\n";
 			export PATH=$HOME/Toolchains/Google-4.9-Generic/bin:$PATH;
 			export CROSS_COMPILE=arm-linux-androideabi-;
 			break;;
+		"4")
+			echo -e "Selected toolchain: Uber GCC 4.9\n";
+			export PATH=$HOME/Toolchains/Uber-4.9-Generic/bin:$PATH;
+			export CROSS_COMPILE=arm-eabi-;
+			break;;
+			
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
 	esac;
