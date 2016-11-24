@@ -234,10 +234,10 @@ if [[ $rom = "idcrisis" ]]; then
 else
 	if [[ $zipmode = "ak" ]]; then
 		maindir=$HOME/Kernel/Zip_CM_AK;
-		outdir=$HOME/Kernel/Out_CM_AK/$device;
+		outdir=$HOME/Kernel/Out_CM_AK/$device"_M";
 	else
 		maindir=$HOME/Kernel/Zip_CM_BootImg;
-		outdir=$HOME/Kernel/Out_CM_BootImg/$device;
+		outdir=$HOME/Kernel/Out_CM_BootImg/$device"_M";
 	fi;
 	devicedir=$maindir/$device"_M";
 fi;
