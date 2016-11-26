@@ -221,6 +221,7 @@ fi;
 # CM13 alt version? Also edit .config
 if [[ $rom = "cm_alt" ]]; then
 	sed -i s/"# CONFIG_ASMP is not set"/"CONFIG_ASMP=y"/ .config;
+	sed -i s/"# CONFIG_CPU_BOOST is not set"/"CONFIG_CPU_BOOST=y"/ .config;	
 fi;
 
 make -j4;
