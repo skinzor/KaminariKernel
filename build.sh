@@ -19,8 +19,10 @@ normal=`tput sgr0`;
 echo -e "Building KaminariKernel (CM14.1)...\n";
 
 toolchainstr="Which cross-compiler toolchain do you want to use?
-1. Linaro GCC 4.9 (default)
-2. Google/AOSP GCC 4.9 ";
+1. Linaro GCC 4.9
+2. Google/AOSP GCC 4.8
+3. Google/AOSP GCC 4.9 
+4. Uber GCC 4.9 (default) ";
 
 devicestr="Which device do you want to build for?
 1. Moto G (1st gen, GSM/CDMA) (falcon)
@@ -32,7 +34,9 @@ hpstr="Which hotplug driver should this build use?
 
 cleanstr="Do you want to remove everything from the last build? (Y/N)
 
-You ${bold}MUST${normal} do this if you have changed toolchains. "
+You ${bold}MUST${normal} do this if: 
+1. You have changed toolchains;
+2. You have built a CM Standard version and will now build a CM Alternative (or vice-versa). ";
 
 zipstr="Which installation type do you want to use?
 1. AnyKernel (recommended/default)
@@ -41,24 +45,36 @@ zipstr="Which installation type do you want to use?
 selstr="Do you want to force SELinux to stay in Permissive mode?
 Only say Yes if you're aware of the security risks this may introduce! (Y/N) ";
 
-
 # Select which toolchain should be used & Set up the cross-compiler (pt. 2)
 while read -p "$toolchainstr" tc; do
 	case $tc in
-		"1" | "" | " ")
+		"1")
 			echo -e "Selected toolchain: Linaro GCC 4.9\n";
 			export PATH=$HOME/Toolchains/Linaro-4.9-CortexA7/bin:$PATH;
 			export CROSS_COMPILE=arm-cortex_a7-linux-gnueabihf-;
 			break;;
 		"2")
+			echo -e "Selected toolchain: Google/AOSP GCC 4.8\n";
+			export PATH=$HOME/Toolchains/Google-4.8-Generic/bin:$PATH;
+			export CROSS_COMPILE=arm-eabi-;
+			break;;
+
+		"3")
 			echo -e "Selected toolchain: Google/AOSP GCC 4.9\n";
 			export PATH=$HOME/Toolchains/Google-4.9-Generic/bin:$PATH;
 			export CROSS_COMPILE=arm-linux-androideabi-;
 			break;;
+		"4" | "" | " ")
+			echo -e "Selected toolchain: Uber GCC 4.9\n";
+			export PATH=$HOME/Toolchains/Uber-4.9-Generic/bin:$PATH;
+			export CROSS_COMPILE=arm-eabi-;
+			break;;
+			
 		*)
 			echo -e "\nInvalid option. Try again.\n";;
 	esac;
 done;			
+		
 
 # Select which device the kernel should be built for
 while read -p "$devicestr" dev; do
@@ -195,6 +211,7 @@ fi;
 # AutoSMP? Also edit .config
 if [[ $hp = "asmp" ]]; then
 	sed -i s/"# CONFIG_ASMP is not set"/"CONFIG_ASMP=y"/ .config;
+	sed -i s/"# CONFIG_CPU_BOOST is not set"/"CONFIG_CPU_BOOST=y"/ .config;
 fi;
 
 make -j4;
